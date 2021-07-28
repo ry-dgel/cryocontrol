@@ -22,7 +22,8 @@ def _to_zs_matrix(radius, height):
 
 class JPECoord():
 
-    def __init__(self, radius, height, zmin, zmax):
+    def __init__(self, radius : float, height : float, 
+                       zmin : float, zmax : float) -> None:
         self.R = radius
         self.h = height
         self.zmin = zmin
@@ -30,19 +31,20 @@ class JPECoord():
         self.mat_from_zs = _from_zs_matrix(radius, height)
         self.mat_to_zs = _to_zs_matrix(radius, height)
 
-    def cart_from_zs(self, zs):
+    def cart_from_zs(self, zs: list[float]) -> list[float]:
         return self.from_zs(zs)[:3]
     
-    def rot_from_zs(self, zs):
+    def rot_from_zs(self, zs: list[float]) -> list[float]:
         return self.from_zs(zs)[3:]
     
-    def from_zs(self, zs):
+    def from_zs(self, zs: list[float]) -> list[float]:
         return self.mat_from_zs @ zs
     
-    def zs_from_cart(self, cart):
+    def zs_from_cart(self, cart: list[float]) -> list[float]:
         return self.mat_to_zs @ cart
 
-    def bounds(self, const_axis='z', const_value=0):
+    def bounds(self, const_axis : str ='z', 
+                     const_value : float = 0) -> list[float]:
         func_dic = {'x' : _xlims, 'y' : _ylims, 'z' : _zlims}
         if const_axis not in func_dic.keys():
             raise ValueError(f"Invalid constant axis: {const_axis}")
@@ -55,8 +57,8 @@ class JPECoord():
         order = np.apply_along_axis(sortfunc, 1, pts).argsort()
         return pts[order]
     
-    def inbounds(self,point,poly_points):
-        subbed_points = poly_points - points
+    def inbounds(self,point : list[float], poly_points : list[list[float]]) -> bool:
+        subbed_points = poly_points - point
         angle_signs = []
         n = poly_points.shape[0]
         for i, point in enumerate(subbed_points):
@@ -66,8 +68,7 @@ class JPECoord():
         angle_signs = np.array([angle_signs])
         return not np.any(np.diff(angle_signs))
 
-
-def _zlims(z,zmin,zmax,R,h):
+def _zlims(z,zmin : float, zmax : float, R : float, h : float) -> list[list[float]]:
     zmid = (zmin + zmax)/2
     zd = (zmax - zmin)/2
     z = z - zmid
@@ -75,14 +76,12 @@ def _zlims(z,zmin,zmax,R,h):
     s3 = np.sqrt(3) 
     hr = h/R
     if 3*z <= -zd and -zd <= z:
-        print("First Yes")
         x = s3*hr * (z + zd)
         y = hr * (z + zd)
         lims.append([x,y])
         lims.append([-x,y])
         lims.append([0, -2*y])
     if 3*z > -zd and 3*z < zd:
-        print("Second Yes")
         x = hr/s3 * (zd - 3*z)
         y = hr * (z + zd)
         lims.append([x,y])
@@ -96,7 +95,6 @@ def _zlims(z,zmin,zmax,R,h):
         lims.append([x,y])
         lims.append([-x,y])
     if 3*z >= zd and z <= zd:
-        print("Third Yes")
         y = 2*hr*(-z + zd)
         lims.append([0,y])
         x = s3*hr*(z - zd)
@@ -108,7 +106,7 @@ def _zlims(z,zmin,zmax,R,h):
     else:
         return [[0,0]]
     
-def _xlims(x,zmin,zmax,R,h):
+def _xlims(x:float,zmin:float,zmax:float,R:float,h:float) -> list[list[float]]:
     zmid = (zmin + zmax)/2
     zd = (zmax - zmin)/2
     lims = []
@@ -141,7 +139,7 @@ def _xlims(x,zmin,zmax,R,h):
     else:
         return [[0,0]]
 
-def _ylims(y, zmin,zmax,R,h):
+def _ylims(y:float, zmin:float,zmax:float,R:float,h:float) -> list[list[float]]:
     zmid = (zmin + zmax)/2
     zd = (zmax - zmin)/2
     lims = []

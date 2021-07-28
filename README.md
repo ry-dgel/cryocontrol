@@ -1,2 +1,2 @@
 # cryocontrol
- Miscellaneous scripts for controling our cryostat experiment, to be unified.
+ Miscellaneous scripts for controlling our cryostat experiment, to be unified.

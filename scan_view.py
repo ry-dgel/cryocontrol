@@ -59,11 +59,24 @@ class ScanView(egg.gui.Window):
                                            type='list', values=list_colormap)
         self.treeDic_settings.add_parameter('Set_aspect', False, 
                                            type='bool',
-                                           tip='Weither or not to set the axis to scale. ')  
+                                           tip='Wether or not to fix pixels to 1x1. ')
+        self.treeDic_settings.add_parameter('Auto Convert', True,
+                                            type='bool',
+                                            tip='If true uses cavspy to convert, else use following values.')
+        self.treeDic_settings.add_parameter('X Conversion', 117,
+                                            type='float',
+                                            tip='um/V conversion factor for x-axis')
+        self.treeDic_settings.add_parameter('Y Conversion', 117,
+                                            type='float',
+                                            tip='um/V conversion factor for y-axis')                                    
       
         # Some connections
         self.treeDic_settings.connect_signal_changed('Colormap', self.update_colormap)
         self.treeDic_settings.connect_signal_changed('Set_aspect', self.update_image)
+        self.treeDic_settings.connect_signal_changed('Auto Convert', self.update_image)
+        self.treeDic_settings.connect_signal_changed('X Conversion', self.update_image)
+        self.treeDic_settings.connect_signal_changed('Y Conversion', self.update_image)
+
 
         self.button_copy_right = self.place_object(egg.gui.Button(), column=4, row=0, alignment=0)
         self.button_copy_right.set_text("Copy Values ->")
@@ -148,7 +161,7 @@ class ScanView(egg.gui.Window):
         self.Ny,self.Nx = scan['data'].shape
         self.vmin = np.min(scan['data'])
         self.vmax = np.max(scan['data'])
-
+        
         xs = scan['xs']
         ys = scan['ys']
         self.xmax = np.max(xs)
@@ -156,6 +169,12 @@ class ScanView(egg.gui.Window):
         self.ymax = np.max(ys)
         self.ymin = np.min(ys)
         
+        Vxs = scan['Vxs']
+        Vys = scan['Vys']
+        self.Vxmax = np.max(Vxs)
+        self.Vxmin = np.min(Vxs)
+        self.Vymax = np.max(Vys)
+        self.Vymin = np.min(Vys)
         
         # Update the image
         self.create_plots()
@@ -230,35 +249,48 @@ class ScanView(egg.gui.Window):
         if self.doubled:
             self.plot_item2.setLabel('bottom', text='X Pos (um)')
             self.plot_item2.setLabel('left', text='Y Pos (um)')
-        # Set the scaling
-        self.scale_x = (self.xmax-self.xmin)/self.Nx
-        self.scale_y = (self.ymax-self.ymin)/self.Ny
+
         
     def update_image(self):
         """
         Update the map with the actual Z data
         """
         _debug('GUIMap: update_image')
-
+        if self.treeDic_settings['Auto Convert']:
+            xmin = self.xmin
+            xmax = self.xmax
+            ymin = self.ymin
+            ymax = self.ymax
+            # Set the scaling
+            scale_x = (xmax-xmin)/self.Nx
+            scale_y = (ymax-ymin)/self.Ny
+        else:
+            xmin = self.Vxmin * self.treeDic_settings['X Conversion']
+            xmax = self.Vxmax * self.treeDic_settings['X Conversion']
+            ymin = self.Vymin * self.treeDic_settings['Y Conversion']
+            ymax = self.Vymax * self.treeDic_settings['Y Conversion']
+            # Set the scaling
+            scale_x = (xmax-xmin)/self.Nx
+            scale_y = (ymax-ymin)/self.Ny
+            
         # Set the ratio according to the settings
         value = self.treeDic_settings['Set_aspect']
         # True gives a 1:1 aspect ratio. False allows for arbitrary axis scaling.
         self.plot_image1.view.setAspectLocked(value)
        
         self.plot_image1.setImage(self.Z1.T,
-                                  pos=(self.xmin, self.ymin),
-                                  scale = (self.scale_x, self.scale_y))
+                                  pos=(xmin, ymin),
+                                  scale = (scale_x, scale_y))
         
         # scale/pan the view to fit the image.
         self.plot_image1.autoRange()
 
-        
         if self.doubled:
             # True gives a 1:1 aspect ratio. False allows for arbitrary axis scaling.
             self.plot_image2.view.setAspectLocked(value)
             self.plot_image2.setImage(self.Z2.T,
-                                      pos=(self.xmin, self.ymin),
-                                      scale =(self.scale_x, self.scale_y))
+                                      pos=(xmin, ymin),
+                                      scale =(scale_x, scale_y))
             self.plot_image2.autoRange()
 
         # Update the color map
