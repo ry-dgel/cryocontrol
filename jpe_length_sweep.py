@@ -7,7 +7,7 @@ from time import sleep
 import pandas as pd
 import os
 
-SAVE_DIR = r"X:\DiamondCloud\Cryostat setup\Data\2021_05_17_wl_full_range\Second Run"
+SAVE_DIR = r"X:\DiamondCloud\Cryostat setup\Data\2021_07_27_sample_in_cryo_redux\Length Sweep"
 
 def plot_data(wl, data):
     fig, axes = plt.subplots(2,1,sharex=True,gridspec_kw={'height_ratios' : [0.3,0.7]})
@@ -52,7 +52,7 @@ def save_wl(wl):
 if __name__=="__main__":
     stage = jpe.NiFpga()
     stage.on_activate()
-    stage.set_scanner_xy_volts(-0.579695, 0.0604593)
+    stage.set_scanner_xy_volts(-0.114661, 0.339499)
 
     andor = spect.Spectrometer()
     andor._exp_time = 4

@@ -2,10 +2,10 @@ Colormap	'inferno'
 Colormap|expanded	True
 Set_aspect	True
 Set_aspect|expanded	True
-Auto Convert	False
-Auto Convert|expanded	True
-X Conversion	1.0
-X Conversion|expanded	True
-Y Conversion	1.0
-Y Conversion|expanded	True
+Forward	False
+Forward|expanded	True
+Reducing	'max'
+Reducing|expanded	True
+Slice Index	18
+Slice Index|expanded	True
 
