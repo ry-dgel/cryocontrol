@@ -1,14 +1,15 @@
 from typing import Callable
 import numpy as np
+import numpy.typing as npt
 from inspect import signature
 from numbers import Number
 from itertools import product
 
 class Scanner():
     
-    def __init__(self, function : Callable, 
+    def __init__(self, function : Callable,
                  centers : list[Number], spans: list[Number], steps : list[int],
-                 n_outputs=1,
+                 output_dtype: npt.DTypeLike = object,
                  labels=None,
                  init:Callable=None, 
                  progress:Callable=None, 
@@ -25,17 +26,16 @@ class Scanner():
             raise RuntimeError("Number of labels doesn't match number of function parameters")
 
         self._func = function
-        self._n_out = n_outputs
 
-        self._centers = centers
-        self._spans = spans
-        self._steps = steps
-
+        self._centers = np.atleast_1d(centers)
+        self._spans = np.atleast_1d(spans)
+        self._steps = np.atleast_1d(steps)
+        self._dtype = output_dtype
         self._init_func = init if init else lambda *x: None
         self._prog_func = progress if progress else lambda *x: None
         self._finish_func = finish if finish else lambda *x: None
 
-        self._positions = self.get_positions()
+        self._positions = self._get_positions()
 
     def _get_positions(self):
         positions = []
@@ -58,6 +58,7 @@ class Scanner():
 
     @positions.setter
     def positions(self, positions):
+        positions = np.atleast_1d(positions)
         if len(positions) != self._n_params:
             raise RuntimeError("Number of positions doesn't match number of function parameters")
         else:
@@ -70,11 +71,12 @@ class Scanner():
     
     @centers.setter
     def centers(self, centers):
+        centers = np.atleast_1d(centers)
         if len(centers) != self._n_params:
             raise RuntimeError("Number of centers doesn't match number of function parameters")
         else:
             self._centers = centers
-            positions = self._get_positions
+            self._positions = self._get_positions()
 
     @property
     def spans(self):
@@ -82,11 +84,12 @@ class Scanner():
     
     @spans.setter
     def spans(self, spans):
+        spans = np.atleast_1d(spans)
         if len(spans) != self._n_params:
             raise RuntimeError("Number of spans doesn't match number of function parameters")
         else:
             self._spans = spans
-            positions = self._get_positions
+            self._positions = self._get_positions()
     
     @property
     def steps(self):
@@ -94,18 +97,16 @@ class Scanner():
     
     @steps.setter
     def steps(self, steps):
+        steps = np.atleast_1d(steps)
         if len(steps) != self._n_params:
             raise RuntimeError("Number of steps doesn't match number of function parameters")
         else:
             self._steps = steps
-        positions = self._get_positions
+        self._positions = self._get_positions()
 
     def run(self):
         imax = np.prod(self._steps)
-        if self._n_out > 1:
-            results = np.zeros((self._steps + [self._n_out]))
-        else:
-            results = np.zeros(self._steps)
+        results = np.zeros(self._steps, dtype=self._dtype)
         res_iter = results.flat
 
         self._init_func()

@@ -54,10 +54,6 @@ def save_wl(wl):
 
 # Setup FPGA
 cryo = fc.CryoFPGA()
-galvo_pos = cryo.get_galvo()
-jpe_pos = cryo.get_jpe_pzs()
-
-
 
 # Setup Spectrometer
 andor = sp.Spectrometer()
@@ -82,3 +78,28 @@ save_wl(wlc)
 objs = plot_data(wlc,data)
 save_data(data,0,-1,"Init")
 plt.pause(1)
+
+global cavity_pos
+
+def init():
+    # This is dumb for now, but it should work, please figure
+    # out a better way to do this, such as passing an object that gets
+    # used later on as well
+    global cavity_pos
+    cavity_pos = cryo.get_cavity()
+
+def cav_and_spect(cav_z):
+    cryo.set_cavity(cav_z, write=True)
+    data = np.array(andor.get_acq())
+    wlc, data = crop_data(wl,data,wlmin,wlmax,rows)
+
+def progress(i,imax,pos,scan):
+    update_data(data, *objs)
+    save_data(scan,data,i,"fwd_")
+
+def finish(results):
+    global galvo_pos, jpe_pos, cavity_pos
+    cryo.set_cavity(cavity_pos)
+    
+    results = np.stack(results)
+    

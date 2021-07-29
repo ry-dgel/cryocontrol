@@ -2,10 +2,10 @@ Colormap	'inferno'
 Colormap|expanded	True
 Set_aspect	True
 Set_aspect|expanded	True
-Forward	False
+Forward	True
 Forward|expanded	True
 Reducing	'max'
 Reducing|expanded	True
-Slice Index	18
+Slice Index	158
 Slice Index|expanded	True
 
