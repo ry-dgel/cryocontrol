@@ -19,7 +19,7 @@ def _bits_to_volts(bits, vmax, bit_depth):
         raise ValueError("Given int outside binary depth range.")
     if bits == -2**(bit_depth-1):
         return -vmax
-    return (bits - (0.5 if bits > 0  else -0.5)) / (2**(bit_depth-1) - 1) * vmax
+    return (bits - (0.5 * np.sign(bits))) / (2**(bit_depth-1) - 1) * vmax
 
 def _within(value,vmin,vmax):
     """Check that a value is within a certain range.     
@@ -185,7 +185,7 @@ class NiFPGA():
             chns = list(range(self._n_AO))
         try:
             volts = [_bits_to_volts(self._fpga.registers[f"AO{chn}"].read(),
-                                    self.vmax, self._bit_depth) 
+                                    self._vmax, self._bit_depth) 
                      for chn in chns]
         except:
             raise
@@ -233,7 +233,7 @@ class NiFPGA():
             chns = list(range(self._n_AI))
         try:
             volts = [_bits_to_volts(self._fpga.registers[f"AI{chn}"],
-                                    self.vmax, self._bit_depth) 
+                                    self._vmax, self._bit_depth) 
                         for chn in chns]
         except:
             raise

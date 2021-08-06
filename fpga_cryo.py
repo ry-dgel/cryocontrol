@@ -61,13 +61,18 @@ class CryoFPGA(fb.NiFPGA):
             for i, v in enumerate(volts):
                 if v is None:
                     volts[i] = current[i]
+
+        if not pz_conv.check_bounds(x,y,z, volts):
+            raise ValueError(f"New JPE Position is outside bounds.")
+
         z_volts = pz_conv.zs_from_cart(volts)
         self.set_AO_volts([self._jpe_uno, self._jpe_due, self._jpe_tre], z_volts)
         if write:
             self.write_values_to_fpga()
 
     def get_jpe_pzs(self) -> list[float]:
-        return self.get_AO_volts([self._jpe_uno,self._jpe_due,self._jpe_tre])
+        z_volts = self.get_AO_volts([self._jpe_uno,self._jpe_due,self._jpe_tre])
+        return pz_conv.cart_from_zs(z_volts)
 
     def set_galvo(self, x:float = None, y:float = None, write:bool=True) -> None:
         volts = [x,y]
@@ -86,8 +91,9 @@ class CryoFPGA(fb.NiFPGA):
         self.set_AO_volts([self._cavity_z], [z])
         if write:
             self.write_values_to_fpga()
+
     def get_cavity(self) -> float:
-        self.get_AO_volts([self._cavity_z])
+        return self.get_AO_volts([self._cavity_z])
 
     def set_aoms(self, red:float = None, green:float = None, write:bool=True) -> None:
         volts = [red, green]
@@ -100,7 +106,7 @@ class CryoFPGA(fb.NiFPGA):
         if write:
             self.write_values_to_fpga()
     def get_aoms(self) -> list[float]:
-        self.set_AO_volts([self._red_aom, self._green_aom])
+        return self.set_AO_volts([self._red_aom, self._green_aom])
 
     def get_photodiode(self) -> float:
         return self.get_AI_volts(self._photodiode_in)
@@ -123,7 +129,7 @@ class CryoFPGA(fb.NiFPGA):
     def write_values_to_fpga(self) -> None:
         self.just_count(1/pg_config['clock_rate'] * 1E3)
 
-    def just_count(self, time : float) -> List[float]:
+    def just_count(self, time : float) -> list[float]:
         dio_array = [0,1] + self.get_dio_array()
         pulse_pattern = [{'duration' : time, 'dio_array' : dio_array}]
         self.pulse_pattern = pulse_pattern
@@ -131,7 +137,7 @@ class CryoFPGA(fb.NiFPGA):
 
         return self.write_pulse_count(pulse_pattern)[0]
 
-    def count_n_times(self, time : float, n:int = 1000) -> List[float]:
+    def count_n_times(self, time : float, n:int = 1000) -> list[float]:
         dio_array = [0,1] + self.get_dio_array()
         pulse_pattern = [{'duration' : time, 'dio_array' : dio_array}]
         self.pulse_pattern = pulse_pattern
@@ -145,12 +151,12 @@ class CryoFPGA(fb.NiFPGA):
 
         return counts
 
-    def write_pulse_count(self, pulse_pattern : dict{str, object}) -> None:
+    def write_pulse_count(self, pulse_pattern : dict[str, object]) -> None:
         self.prep_pulse_pattern(pulse_pattern)
         self.write_pulse_pattern()
         return self.pulse_and_count()
 
-    def prep_pulse_pattern(self, pulse_pattern : dict{str, object}) -> None:
+    def prep_pulse_pattern(self, pulse_pattern : dict[str, object]) -> None:
         self._duration = 2/pg_config['clock_rate'] * 1E3
         for step in pulse_pattern:
             self._duration += step['duration'] * 1E-3
@@ -180,7 +186,7 @@ class CryoFPGA(fb.NiFPGA):
         # Send the pulse pattern data to the fpga, with 5s timeout
         self.write_fifo(self._pulse_pattern_fifo, fifo_data, 5000)
         
-    def pulse_and_count(self) -> List[float]:
+    def pulse_and_count(self) -> list[float]:
         self.write_register('Start FPGA 1', 1)
         sleep(self._duration)
         for i in range(self._max_waits):
@@ -192,7 +198,7 @@ class CryoFPGA(fb.NiFPGA):
             raise TimeoutError("Pulse pattern timed out.")
         return self.get_counts()
 
-    def get_counts(self, per_second:bool = True) -> List[float]:
+    def get_counts(self, per_second:bool = True) -> list[float]:
         if per_second:
             return self.read_fifo(self._counts_fifo)/self.count_time
         else:

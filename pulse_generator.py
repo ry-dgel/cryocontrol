@@ -51,6 +51,8 @@ class PulseGen():
         values = []
         for tick in ticks:
             binary_time = self.int_to_bin(tick)
+            # Pad binary tick count to a length of 16 
+            binary_time += [0] * (16 - len(binary_time))
             full_binary = binary_time + step['dio_array']
             values.append(self.bin_to_int(full_binary))
         return values

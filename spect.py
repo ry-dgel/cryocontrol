@@ -28,7 +28,7 @@ class Spectrometer():
                   "_warm_temp" : -20,
                   "_cold_temp" : -70,
 
-                  "_coeffs" : [541.593555,0.133850061,-1.42278931e-06,0]
+                  "_coeffs" : [527.94458,0.134773329,-1.88761032e-06,0]
                  }
 
         # Modify config with parameters
@@ -272,7 +272,7 @@ class Spectrometer():
     # This is hella sketch and will likely result in a not properly calibrated
     # wavelength axis. Ideally use Andor to setup the range and 
     # get the proper calibration coeffs from there via file -> Configuration Files
-    # The current coeffs are correct for wl = 603.1099853515625
+    # The current coeffs are correct for wl = 596.77
     def set_central_wavelength(self, wavelength):
         current_wl = ct.c_float()
         self.sapi.ShamrockGetWavelength(0, ct.byref(current_wl))

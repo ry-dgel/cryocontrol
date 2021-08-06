@@ -9,7 +9,7 @@ def _from_zs_matrix(radius, height):
                     [-1, 2, -1],
                     [-np.sqrt(3), 0, np.sqrt(3)],
                     [0, 0, 0]])
-    return np.array(mat)
+    return 1/(3*R) * np.array(mat)
 
 def _to_zs_matrix(radius, height):
     h = height
@@ -67,6 +67,17 @@ class JPECoord():
             angle_signs.append(sign)
         angle_signs = np.array([angle_signs])
         return not np.any(np.diff(angle_signs))
+
+    def check_bounds(self, x:float,y:float,z:float, set_pos:list[float]):
+        if x is None and None not in [y,z]:
+            bounds = self.bounds('x', set_pos[0])
+            return self.inbounds([y,z],bounds)
+        elif x is None and None not in [z,x]:
+            bounds = self.bounds('y', set_pos[1])
+            return self.inbounds([z,x],bounds)
+        else:
+            bounds = self.bounds('z', set_pos[2])
+            return self.inbounds([x,y],bounds)
 
 def _zlims(z,zmin : float, zmax : float, R : float, h : float) -> list[list[float]]:
     zmid = (zmin + zmax)/2

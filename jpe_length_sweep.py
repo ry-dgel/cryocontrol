@@ -52,7 +52,7 @@ def save_wl(wl):
 if __name__=="__main__":
     stage = jpe.NiFpga()
     stage.on_activate()
-    stage.set_scanner_xy_volts(-0.114661, 0.339499)
+    stage.set_scanner_xy_volts(0.0870298, -0.0229116)
 
     andor = spect.Spectrometer()
     andor._exp_time = 4
@@ -77,7 +77,7 @@ if __name__=="__main__":
     save_data(data,0,-1,"Init")
     plt.pause(1)
 
-    vmin = -3
+    vmin = -5
     vmax = 0
     npts = 1500
     wait_time = 0.3
