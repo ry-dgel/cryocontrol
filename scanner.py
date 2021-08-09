@@ -217,7 +217,7 @@ class Scanner():
         return self._positions
 
     @positions.setter
-    def positions(self, positions : list[npt.ArrayLike[float]]):
+    def positions(self, positions : list[npt.ArrayLike]):
         """Set the positions to be visited along each array.
 
         Parameters
@@ -462,7 +462,7 @@ class Scanner():
         
         else:
             with open(filename.with_suffix(".csv"), 'w') as f:
-                if header is not "" or header is not None:
+                if header != "" or header is not None:
                     nline = len(header.split('\n')) + 2
                     f.write(f"n_header_lines = {nline}")
                     f.write(header)
