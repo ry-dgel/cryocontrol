@@ -4,8 +4,8 @@ Set_aspect	True
 Set_aspect|expanded	True
 Forward	False
 Forward|expanded	True
-Reducing	'mean'
+Reducing	'max'
 Reducing|expanded	True
-Slice Index	43
+Slice Index	182
 Slice Index|expanded	True
 
