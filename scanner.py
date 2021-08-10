@@ -52,8 +52,9 @@ class Scanner():
         progress : Callable, optional
             A function to be run after getting the results of every step. Useful for monitoring
             the results. Must take 4 parameters:
-              * i : int, the current step number.
-              * imax : int, the total number of steps in the sweep.
+              * I : int, the current step number.
+              * Imax : int, the total number of steps in the sweep.
+              * index : tuple[int], the current index along each axis positive position axis.
               * position : tuple[Number], the current positions along each axis.
               * result : npt.DTypeLike, the output of `function` at the current position.
             By default None
@@ -70,9 +71,9 @@ class Scanner():
                  log : list[int] = [],
                  output_dtype: npt.DTypeLike = object,
                  labels : list[object] = None,
-                 init:Callable=None, 
-                 progress:Callable=None, 
-                 finish:Callable=None) -> None:
+                 init:Callable= lambda *args: None, 
+                 progress:Callable= lambda *args: None, 
+                 finish:Callable= lambda *args: None) -> None:
         """Create a sweeper object, automatically checks that some values are sane.
 
         Parameters (for __init__)
@@ -115,8 +116,9 @@ class Scanner():
         progress : Callable, optional
             A function to be run after getting the results of every step. Useful for monitoring
             the results. Must take 4 parameters:
-              * i : int, the current step number.
-              * imax : int, the total number of steps in the sweep.
+              * I : int, the current step number.
+              * Imax : int, the total number of steps in the sweep.
+              * index : tuple[int], the current index along each axis positive position axis.
               * position : tuple[Number], the current positions along each axis.
               * result : npt.DTypeLike, the output of `function` at the current position.
             By default None
@@ -144,10 +146,24 @@ class Scanner():
             if not log <= self._n_params - 1:
                 raise RuntimeError(f"Invalid axis to logarithmic {i}")
 
-        if progress is not None and len(signature(progress).parameters) != 4:
-            raise RuntimeError("Progress function must take 4 parameters (i, imax, pos, result)")
-        if finish is not None and len(signature(finish).parameters) != 2:
-            raise RuntimeError("Finish function must take 2 parameters (results, completed)")
+        # If values of parameters is wrong, and the function doesn't take an arbitrary length *args.
+        if len(signature(init).parameters) != 0:
+            if list(signature(init).parameters.values())[0].kind != 2:
+                raise RuntimeError("Progress function must take no parameters.")
+        if len(signature(progress).parameters) != 4:
+            msg = "Progress function must take 4 parameters (i, imax, pos, result)."
+            try:
+                if list(signature(progress).parameters.values())[0].kind != 2:
+                    raise RuntimeError(msg)
+            except IndexError:
+                raise RuntimeError(msg)
+        if len(signature(finish).parameters) != 2:
+            msg = "Finish function must take 2 parameters (results, completed)."
+            try:
+                if list(signature(finish).parameters.values())[0].kind != 2:
+                    raise RuntimeError(msg)
+            except IndexError:
+                raise RuntimeError(msg)
 
         self._func = function
 
@@ -390,20 +406,20 @@ class Scanner():
         np.ndarray[npt.DTypeLike]
             The results of running the sweep function at each position.
         """
-        imax = np.prod(self._steps)
+        Imax = np.prod(self._steps)
         results = np.zeros(self._steps, dtype=self._dtype)
         self.results = results
         self._has_run = True
-        self._prev_positions = self.generate_scan_positions()
-        res_iter = results.flat
+        positions, indices = self.generate_scan_positions()
+        self._prev_positions = positions
         
         self._init_func()
 
         completed = False
-        for i,position in enumerate(zip(*self._prev_positions)):
+        for I,(index,position) in enumerate(zip(zip(*indices),zip(*positions))):
             result = self._func(*position)
-            res_iter[i] = result
-            self._prog_func(i, imax, position, result)
+            results[index] = result
+            self._prog_func(I, Imax, index, position, result)
         else:
             completed = True
         
@@ -477,7 +493,8 @@ class Scanner():
                     f.write(f"{value}\n")
 
     def generate_scan_positions(self):
-        """Generate the full set of scan positions for the scanner.
+        """Generate the full set of scan positions for the scanner, as well
+           as the indices of the output array that correspond to the positions.
 
            TODO: While this works as is, it's not super memory efficient.
            This can probably be handled by a smart iterator.
@@ -485,28 +502,40 @@ class Scanner():
         -------
         list[np.ndarray[Number]]
             The array of positions for every step, for every index.
+        list[np.ndarray[Int]]
+            The index along each positive position [xmin,...,xmax] array.
+            This is need to know where we are in a ndarray when snaking the scan.
         """
         positions = []
+        indices = []
         
         for ax in range(self._n_params):
             n_tile = np.prod(self._steps[:ax])
             n_repeat = np.prod(self._steps[ax+1:])
+            pos = self._positions[ax]
+            idx = np.arange(len(pos),dtype=int)
             if ax in self._snake:
-                pos = self._positions[ax]
                 pos = np.concatenate((pos,np.flip(pos)))
+                idx = np.concatenate((idx,np.flip(idx)))
                 if odd_tile := n_tile % 2:
                     n_tile -= 1
                 n_tile //= 2
                 pos = np.tile(pos,n_tile)
+                idx = np.tile(idx,n_tile)
                 if odd_tile:
                     pos = np.concatenate((pos,self._positions[ax]))
+                    idx = np.concatenate((idx,np.arange(len(self._positions[ax]))))
                 pos = np.repeat(pos,n_repeat)
+                idx = np.repeat(idx,n_repeat)
             else:
-                pos = self._positions[ax]
-                pos = np.repeat(np.tile(pos,n_tile),n_repeat)
+                pos = np.tile(pos,n_tile)
+                idx = np.tile(idx,n_tile)
+            pos = np.repeat(pos, n_repeat)
+            idx = np.repeat(idx, n_repeat)
             positions.append(pos)           
+            indices.append(idx)
 
-        return positions   
+        return positions, indices
     
 def _safe_file_name(filename : Path):
     """Check the file path for a file with the same name, if one is found

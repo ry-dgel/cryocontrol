@@ -45,7 +45,7 @@ starting_pos = {}
 
 # Setup Spectrometer
 andor = spect.Spectrometer()
-andor._exp_time = 4
+andor._exp_time = 75
 andor.api.SetExposureTime(andor._exp_time)
 
 wl = andor.get_wavelengths()
@@ -65,13 +65,15 @@ def init():
     starting_pos['jpe_pos'] = cryo.get_jpe_pzs()
     starting_pos['cavity_pos'] = cryo.get_cavity()
     starting_pos['galvo_pos'] = cryo.get_galvo()
+    starting_pos['cavity_pos'] = cryo.get_cavity()
     print(starting_pos['galvo_pos'])
+    print(starting_pos['cavity_pos'])
 
-def jpe_z_spectra(jpe_z):
+def cav_z_spectra(cav_z):
     try:
-        cryo.set_jpe_pzs(0,0,jpe_z, write=True)
+        cryo.set_cavity(cav_z, write=True)
     except ValueError:
-        return 0
+        return [[0]]
     data = np.array(andor.get_acq())
     wlc, data = crop_data(wl, data, wlmin, wlmax, rows)
     return data
@@ -89,26 +91,26 @@ def finish(results, completed):
         andor.stop_cooling()
         andor.waitfor_temp()
         andor.close()
-    cryo.set_jpe_pzs(*starting_pos['jpe_pos'], write=True)
+    cryo.set_cavity(*starting_pos['cavity_pos'],write=True)
     
-centers = [-2.5]
-spans = [-5]
-steps = [1300]
-labels = ["JPEZ"]
+centers = [0]
+spans = [16]
+steps = [360]
+labels = ["CAVZ"]
 output_type = object
 
-cavity_scan_3D = Scanner(jpe_z_spectra,
+cavity_scan_3D = Scanner(cav_z_spectra,
                          centers, spans, steps, [], [],output_type,
                          labels=labels,
-                         init = init, progress = progress, finish = None)
+                         init = init, progress = progress)
 results = cavity_scan_3D.run()
-cavity_scan_3D.save_results(SAVE_DIR/'fwd_scan', as_npz=True, header=str(wlc))
+cavity_scan_3D.save_results(SAVE_DIR/'fwd_cav_scan', as_npz=True, header=str(wlc))
 
 
-spans = [5]
-cavity_scan_3D_rev = Scanner(jpe_z_spectra,
+spans = [-16]
+cavity_scan_3D_rev = Scanner(cav_z_spectra,
                              centers, spans, steps,[],[], output_type,
                              labels=labels,
                              init = init, progress = progress, finish = finish)
 results = cavity_scan_3D_rev.run()
-cavity_scan_3D_rev.save_results(SAVE_DIR/'rev_scan', as_npz=True, header=str(wlc))
+cavity_scan_3D_rev.save_results(SAVE_DIR/'rev_cav_scan', as_npz=True, header=str(wlc))
