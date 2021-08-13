@@ -11,7 +11,7 @@ from functools import partial
 from scanner import Scanner
 from pathlib import Path
 
-SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2021_09_09_shorter_cavity")
+SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2021_08_09_shorter_cavity")
 
 def plot_data(wl, data):
     fig, axes = plt.subplots(2,1,sharex=True,gridspec_kw={'height_ratios' : [0.3,0.7]})
@@ -81,6 +81,7 @@ def progress(i,imax,pos,results):
     update_data(*objs, results)
 
 def finish(results, completed):
+    cryo.set_jpe_pzs(*starting_pos['jpe_pos'], write=True)
     if not completed:
         print("Something went wrong, I'll keep the spectrometer cold and not close devices")
     else:
@@ -89,7 +90,7 @@ def finish(results, completed):
         andor.stop_cooling()
         andor.waitfor_temp()
         andor.close()
-    cryo.set_jpe_pzs(*starting_pos['jpe_pos'], write=True)
+    
     
 centers = [-2.5]
 spans = [-5]

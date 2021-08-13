@@ -150,8 +150,8 @@ class Scanner():
         if len(signature(init).parameters) != 0:
             if list(signature(init).parameters.values())[0].kind != 2:
                 raise RuntimeError("Progress function must take no parameters.")
-        if len(signature(progress).parameters) != 4:
-            msg = "Progress function must take 4 parameters (i, imax, pos, result)."
+        if len(signature(progress).parameters) != 5:
+            msg = "Progress function must take 5 parameters (i, imax, index, pos, result)."
             try:
                 if list(signature(progress).parameters.values())[0].kind != 2:
                     raise RuntimeError(msg)

@@ -28,7 +28,7 @@ class Spectrometer():
                   "_warm_temp" : -20,
                   "_cold_temp" : -70,
 
-                  "_coeffs" : [527.94458,0.134773329,-1.88761032e-06,0]
+                  "_coeffs" : [535.201211,0.1265351,7.92000327e-06,-3.76483987e-09]
                  }
 
         # Modify config with parameters

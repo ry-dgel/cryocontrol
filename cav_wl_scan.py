@@ -11,7 +11,7 @@ from functools import partial
 from scanner import Scanner
 from pathlib import Path
 
-SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2021_09_09_shorter_cavity")
+SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2021_08_09_shorter_cavity")
 
 def plot_data(wl, data):
     fig, axes = plt.subplots(2,1,sharex=True,gridspec_kw={'height_ratios' : [0.3,0.7]})
@@ -45,8 +45,12 @@ starting_pos = {}
 
 # Setup Spectrometer
 andor = spect.Spectrometer()
-andor._exp_time = 75
+andor._exp_time = 60
 andor.api.SetExposureTime(andor._exp_time)
+
+andor.start_cooling()
+andor.waitfor_temp()
+
 
 wl = andor.get_wavelengths()
 wlmin = 545
@@ -57,9 +61,6 @@ data = np.array(andor.get_acq())
 wlc,data = crop_data(wl,data,wlmin,wlmax,rows)
 objs = plot_data(wlc,data)
 plt.pause(2)
-
-andor.start_cooling()
-andor.waitfor_temp()
 
 def init():
     starting_pos['jpe_pos'] = cryo.get_jpe_pzs()
@@ -78,11 +79,12 @@ def cav_z_spectra(cav_z):
     wlc, data = crop_data(wl, data, wlmin, wlmax, rows)
     return data
 
-def progress(i,imax,pos,results):
+def progress(i,imax,index, pos,results):
     print(f"{i+1}/{imax}, {pos[0]}")
     update_data(*objs, results)
 
 def finish(results, completed):
+    cryo.set_cavity(*starting_pos['cavity_pos'],write=True)
     if not completed:
         print("Something went wrong, I'll keep the spectrometer cold and not close devices")
     else:
@@ -91,7 +93,6 @@ def finish(results, completed):
         andor.stop_cooling()
         andor.waitfor_temp()
         andor.close()
-    cryo.set_cavity(*starting_pos['cavity_pos'],write=True)
     
 centers = [0]
 spans = [16]
@@ -104,7 +105,7 @@ cavity_scan_3D = Scanner(cav_z_spectra,
                          labels=labels,
                          init = init, progress = progress)
 results = cavity_scan_3D.run()
-cavity_scan_3D.save_results(SAVE_DIR/'fwd_cav_scan', as_npz=True, header=str(wlc))
+cavity_scan_3D.save_results(SAVE_DIR/'fwd_cav_scan_SP532Cut', as_npz=True, header=str(wlc))
 
 
 spans = [-16]
@@ -113,4 +114,4 @@ cavity_scan_3D_rev = Scanner(cav_z_spectra,
                              labels=labels,
                              init = init, progress = progress, finish = finish)
 results = cavity_scan_3D_rev.run()
-cavity_scan_3D_rev.save_results(SAVE_DIR/'rev_cav_scan', as_npz=True, header=str(wlc))
+cavity_scan_3D_rev.save_results(SAVE_DIR/'rev_cav_scan_SP532Cut', as_npz=True, header=str(wlc))
