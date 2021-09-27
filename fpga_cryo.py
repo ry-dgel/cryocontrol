@@ -2,7 +2,7 @@ import fpga_base as fb
 from pulse_generator import PulseGen
 from jpe_coord_convert import JPECoord
 import numpy as np
-from time import sleep
+from time import sleep, time
 
 pg_config = {"dio_chns" : 16,
              "user_dio_chns" : 14,
@@ -34,7 +34,8 @@ class CryoFPGA(fb.NiFPGA):
     _jpe_tre = 7
     _photodiode_in = 1
     _dio_array = [0 for n in range(pg_config['user_dio_chns'])]
-    _max_waits = 20
+    _max_waits = 2
+    _max_wait_multiple = 30
 
     def __init__(self) -> None:
         super().__init__()
@@ -44,10 +45,10 @@ class CryoFPGA(fb.NiFPGA):
         self.wait_after_ao = 5
         self.count_time = 0
 
-        self.set_AO_range(self._galvo_x,   [-10,10])
-        self.set_AO_range(self._galvo_y,   [-10,10])
-        self.set_AO_range(self._green_aom, [0,10])
-        self.set_AO_range(self._red_aom,   [0,10])
+        self.set_AO_range(self._galvo_x,   [-10.0,10.0])
+        self.set_AO_range(self._galvo_y,   [-10.0,10.0])
+        self.set_AO_range(self._green_aom, [0.0,10.0])
+        self.set_AO_range(self._red_aom,   [0.0,10.0])
         self.set_AO_range(self._jpe_uno,   [-6.5,0])
         self.set_AO_range(self._jpe_due,   [-6.5,0])
         self.set_AO_range(self._jpe_tre,   [-6.5,0])
@@ -56,13 +57,15 @@ class CryoFPGA(fb.NiFPGA):
 
     def set_jpe_pzs(self, x:float = None, y:float = None, z:float = None, write:bool=True) -> None:
         volts = [x,y,z]
+
         if any([v is None for v in volts]):
             current = self.get_jpe_pzs()
             for i, v in enumerate(volts):
                 if v is None:
                     volts[i] = current[i]
-
-        if not pz_conv.check_bounds(x,y,z, volts):
+                    
+        #Fixed the mistake had a None issue because it was still taking the x,y,z instead of updated valued
+        if not pz_conv.check_bounds(volts[0],volts[1],volts[2]): 
             raise ValueError(f"New JPE Position is outside bounds.")
 
         z_volts = pz_conv.zs_from_cart(volts)
@@ -129,19 +132,19 @@ class CryoFPGA(fb.NiFPGA):
     def write_values_to_fpga(self) -> None:
         self.just_count(1/pg_config['clock_rate'] * 1E3)
 
-    def just_count(self, time : float) -> list[float]:
+    def just_count(self, ms : float) -> list[float]:
         dio_array = [0,1] + self.get_dio_array()
-        pulse_pattern = [{'duration' : time, 'dio_array' : dio_array}]
+        pulse_pattern = [{'duration' : ms, 'dio_array' : dio_array}]
         self.pulse_pattern = pulse_pattern
-        self.count_time = time * 1E-3
+        self.count_time = ms * 1E-3
 
         return self.write_pulse_count(pulse_pattern)[0]
 
-    def count_n_times(self, time : float, n:int = 1000) -> list[float]:
+    def count_n_times(self, ms : float, n:int = 1000) -> list[float]:
         dio_array = [0,1] + self.get_dio_array()
-        pulse_pattern = [{'duration' : time, 'dio_array' : dio_array}]
+        pulse_pattern = [{'duration' : ms, 'dio_array' : dio_array}]
         self.pulse_pattern = pulse_pattern
-        self.count_time = time * 1E-3
+        self.count_time = ms * 1E-3
         counts = np.empty(n)
         self.prep_pulse_pattern(pulse_pattern)
 
@@ -188,14 +191,35 @@ class CryoFPGA(fb.NiFPGA):
         
     def pulse_and_count(self) -> list[float]:
         self.write_register('Start FPGA 1', 1)
-        sleep(self._duration)
-        for i in range(self._max_waits):
-            if not self.read_register('Start FPGA 1'):
-                break
-            else:
-                sleep(self._duration/10)
+        if self._duration > 1E-3:
+            duration = self._duration
         else:
-            raise TimeoutError("Pulse pattern timed out.")
+            # Computers are too imprecise in timing
+            # so always wait at least 1ms
+            duration = 1E-3
+        # For 'slow' pulses, we can wait a reasonable time.
+        if duration > 15E-3:
+            sleep(duration)
+            for i in range(self._max_waits):
+                if not self.read_register('Start FPGA 1'):
+                    break
+                else:
+                    sleep(duration)
+            else:
+                raise TimeoutError("Pulse pattern timed out.")
+        # For 'fast' pulse, python can't wait a small enough amount of time (>15ms)
+        # so instead we constantly poll until the fpga is done, with a timeout.
+        # sleep(0) is much faster, a little under a millisecond, so adds a nice small delay
+        else:
+            start = time()
+            while (time() - start) < (duration * self._max_wait_multiple):
+                if not self.read_register('Start FPGA 1'):
+                    break
+                else:
+                    sleep(0)
+            else:
+                raise TimeoutError("Pulse pattern timed out.")
+
         return self.get_counts()
 
     def get_counts(self, per_second:bool = True) -> list[float]:

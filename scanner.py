@@ -5,6 +5,7 @@ from inspect import signature
 from numbers import Number
 from warnings import warn
 from pathlib import Path
+from threading import Thread
 
 class Scanner():
     """Class for running a function with parameters swept over a grid. 
@@ -71,8 +72,9 @@ class Scanner():
                  log : list[int] = [],
                  output_dtype: npt.DTypeLike = object,
                  labels : list[object] = None,
-                 init:Callable= lambda *args: None, 
-                 progress:Callable= lambda *args: None, 
+                 init:Callable = lambda *args: None,
+                 abort:Callable = lambda *args: False,
+                 progress:Callable = lambda *args: None, 
                  finish:Callable= lambda *args: None) -> None:
         """Create a sweeper object, automatically checks that some values are sane.
 
@@ -113,9 +115,19 @@ class Scanner():
             A function to be run once before starting the sweep. Useful for initializing some
             hardware or values. Must take no parameters.
             By default None
+        abort: Callable, optional
+            A function to be checked after every point, if this function
+            returns true, the scan will be interrupted skipping the finish function. 
+            Must take 5 parameters:
+              * I : int, the current step number.
+              * Imax : int, the total number of steps in the sweep.
+              * index : tuple[int], the current index along each axis positive position axis.
+              * position : tuple[Number], the current positions along each axis.
+              * result : npt.DTypeLike, the output of `function` at the current position.
+            By default, always returns False
         progress : Callable, optional
             A function to be run after getting the results of every step. Useful for monitoring
-            the results. Must take 4 parameters:
+            the results. Must take 5 parameters:
               * I : int, the current step number.
               * Imax : int, the total number of steps in the sweep.
               * index : tuple[int], the current index along each axis positive position axis.
@@ -150,6 +162,13 @@ class Scanner():
         if len(signature(init).parameters) != 0:
             if list(signature(init).parameters.values())[0].kind != 2:
                 raise RuntimeError("Progress function must take no parameters.")
+        if len(signature(abort).parameters) != 5:
+            msg = "Abort function must take 5 parameters (i, imax, index, pos, result)."
+            try:
+                if list(signature(abort).parameters.values())[0].kind != 2:
+                    raise RuntimeError(msg)
+            except IndexError:
+                raise RuntimeError(msg)
         if len(signature(progress).parameters) != 5:
             msg = "Progress function must take 5 parameters (i, imax, index, pos, result)."
             try:
@@ -174,9 +193,10 @@ class Scanner():
         self._snake = snake
         self._log = log
         self.labels = [str(label) for label in labels] if labels else [str(i) for i in range(len(steps))]
-        self._init_func = init if init else lambda *x: None
-        self._prog_func = progress if progress else lambda *x: None
-        self._finish_func = finish if finish else lambda *x: None
+        self._init_func = init
+        self._abort_func = abort
+        self._prog_func = progress
+        self._finish_func = finish
 
         self._has_run = False
 
@@ -411,7 +431,7 @@ class Scanner():
         self.results = results
         self._has_run = True
         positions, indices = self.generate_scan_positions()
-        self._prev_positions = positions
+        self._prev_positions = self.positions
         
         self._init_func()
 
@@ -419,6 +439,8 @@ class Scanner():
         for I,(index,position) in enumerate(zip(zip(*indices),zip(*positions))):
             result = self._func(*position)
             results[index] = result
+            if self._abort_func(I,Imax,index,position,result):
+                return results
             self._prog_func(I, Imax, index, position, result)
         else:
             completed = True
@@ -426,6 +448,29 @@ class Scanner():
         self._finish_func(results, completed)
 
         return results
+
+    def run_async(self):
+        """Runs the sweep as described in `run()`, but does it in a new thread,
+           allowing for asynchronous operation. Since this is just a separate
+           thread, you're still blocked from running multiple operations by the
+           Global Interpretor Lock, so this should be avoided for super fast
+           sweeps. Only returns the thread object which you can await on using,
+           `thread.join()`, or check the status with `thread.is_alive()`. To then
+           get the results, simply use `scanner.results` once you know the scan is
+           done.
+
+           Functions that do their own threading, such as opening a new
+           matplotlib window will likely not like this, so avoid running those
+           inside the scan.
+
+        Returns
+        -------
+        threading.Thread
+            The thread object in which the scan sweep was run.
+        """
+        t = Thread(target=self.run)
+        t.start()
+        return t
 
     def save_results(self,filename : str, as_npz : bool=False, header:str=""):
         """Saves the results from the most recent running of the sweeper.
@@ -480,7 +525,7 @@ class Scanner():
             with open(filename.with_suffix(".csv"), 'w') as f:
                 if header != "" or header is not None:
                     nline = len(header.split('\n')) + 2
-                    f.write(f"n_header_lines = {nline}")
+                    f.write(f"n_header_lines = {nline}\n")
                     f.write(header)
                     f.write("\n")
                 for label in self.labels:

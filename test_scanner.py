@@ -19,9 +19,9 @@ buffer = np.zeros(steps)
 X,Y = np.meshgrid(*scan.positions)
 fig = plt.figure()
 imobj = plt.pcolormesh(X,Y,buffer,shading='auto')
+plt.show(block=False)
 
 def init(*args):
-    plt.show(block=False)
     print("Starting")
 
 def progress(i,imax,idx,pos,res):
@@ -42,4 +42,4 @@ def finish(*args):
 scan._init_func = init
 scan._prog_func = progress
 scan._finish_func = finish
-scan.run()
+scan.run_async()

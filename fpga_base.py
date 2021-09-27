@@ -55,7 +55,7 @@ class NiFPGA():
     _bit_depth = 16
 
     def __init__(self, **kwargs):
-        self._max_voltage_range = np.array([-10,10])
+        self._max_voltage_range = np.array([-10.0,10.0],dtype=np.double)
         self._clock_frequency = 120E6
         self._voltage_ranges = np.tile(self._max_voltage_range, [self._n_AO,1])
 
@@ -179,7 +179,7 @@ class NiFPGA():
     def get_AO_volts(self,chns=None):
         """ Get the current position of the scanner hardware.
 
-        @return float[n]: current position in (z1,z3,z3).
+        @return float[n]: current position in (z1,z2,z3).
         """
         if chns is None:
             chns = list(range(self._n_AO))

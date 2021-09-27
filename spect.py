@@ -226,11 +226,13 @@ class Spectrometer():
     def waitfor_temp(self):
         if self.cooling:
             target = self.cold_temp
-            comp = lambda temp, target: temp >= target
+            # Sometimes it gets stuck at exactly the target, could round but this
+            # is easier.
+            comp = lambda temp, target: temp >= (target+1)
             print("Cooling Down, Please Wait.")
         else:
             target = self.warm_temp
-            comp = lambda temp, target: temp <= target
+            comp = lambda temp, target: temp <= (target-1)
             print("Warming Up, Please Wait.")
         try:
             while (comp(temp := self.get_temp(),target)):

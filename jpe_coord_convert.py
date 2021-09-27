@@ -68,16 +68,25 @@ class JPECoord():
         angle_signs = np.array([angle_signs])
         return not np.any(np.diff(angle_signs))
 
+    """
     def check_bounds(self, x:float,y:float,z:float, set_pos:list[float]):
+        # print(x,y,z)
         if x is None and None not in [y,z]:
             bounds = self.bounds('x', set_pos[0])
             return self.inbounds([y,z],bounds)
-        elif x is None and None not in [z,x]:
+        elif y is None and None not in [z,x]:
             bounds = self.bounds('y', set_pos[1])
             return self.inbounds([z,x],bounds)
         else:
             bounds = self.bounds('z', set_pos[2])
             return self.inbounds([x,y],bounds)
+    """
+    def check_bounds(self, x:float, y:float, z:float):
+        zs = self.zs_from_cart([x,y,z])
+        for z in zs:
+            if not (self.zmax > z > self.zmin):
+                return False
+        return True
 
 def _zlims(z,zmin : float, zmax : float, R : float, h : float) -> list[list[float]]:
     zmid = (zmin + zmax)/2
