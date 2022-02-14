@@ -2,20 +2,13 @@ from typing import DefaultDict
 import dearpygui.dearpygui as dpg
 import numpy as np
 from time import sleep,time
-import dearpygui.logger as dpg_logger
 from numpy.lib.histograms import histogram
 import datetime
 from pathlib import Path
 from scanner import Scanner
 from fpga_cryo import CryoFPGA
-
-heat_series_id = dpg.generate_uuid()
-histogram_id = dpg.generate_uuid()
-plot_id = dpg.generate_uuid()
-colormap_id = dpg.generate_uuid()
-scan = dpg.generate_uuid()
-line1_id = dpg.generate_uuid()
-line2_id = dpg.generate_uuid()
+import rdpg as rdpg
+dpg = rdpg.dpg
 
 # Setup fpga control
 #fpga = CryoFPGA()
@@ -156,14 +149,15 @@ def cursor_drag(sender,value,user_data):
         dpg.set_value(cc,point)
     return
 
-with dpg.font_registry():
-    dpg.add_font("X:\\DiamondCloud\\Personal\\Rigel\\Scripts\\FiraCode-Bold.ttf", 18, default_font=True)
-    dpg.add_font("X:\\DiamondCloud\\Personal\\Rigel\\Scripts\\FiraCode-Medium.ttf", 18, default_font=False)
-    dpg.add_font("X:\\DiamondCloud\\Personal\\Rigel\\Scripts\\FiraCode-Regular.ttf", 18, default_font=False)
-    dpg.add_font("X:\\DiamondCloud\\Personal\\Rigel\\Scripts\\FiraCode-Bold.ttf", 22, default_font=False, id="plot_font")
-
+#with dpg.font_registry():
+#    dpg.add_font("X:\\DiamondCloud\\Personal\\Rigel\\Scripts\\FiraCode-Bold.ttf", 18, default_font=True)
+#    dpg.add_font("X:\\DiamondCloud\\Personal\\Rigel\\Scripts\\FiraCode-Medium.ttf", 18, default_font=False)
+#    dpg.add_font("X:\\DiamondCloud\\Personal\\Rigel\\Scripts\\FiraCode-Regular.ttf", 18, default_font=False)
+#    dpg.add_font("X:\\DiamondCloud\\Personal\\Rigel\\Scripts\\FiraCode-Bold.ttf", 22, default_font=False, id="plot_font")
+print("fonts")
 # Begin Menu
-with dpg.window(label="Plot") as main_window:
+rdpg.initialize_dpg("Confocal")
+with dpg.window(tag='main_window', label="Test Window") as main_window:
     dpg.add_text("Data Directory:")
     dpg.add_same_line()
     save_dir = dpg.add_input_text(default_value="X:\\DiamondCloud\\")
@@ -196,21 +190,21 @@ with dpg.window(label="Plot") as main_window:
                         dpg.add_text("Scan Settings")
                         dpg.add_text("Center (V)", indent=1)
                         centers = dpg.add_input_floatx(default_value=[-0.312965,-0.0164046],
-                                                       min_value=-10.0, max_value=10.0, 
-                                                       width=-1, indent=1,size=2)
+                                                        min_value=-10.0, max_value=10.0, 
+                                                        width=-1, indent=1,size=2)
                         dpg.add_text("Span (V)", indent=1)
                         spans = dpg.add_input_floatx(default_value=[1.0,1.0],min_value=-20.0, 
-                                                     max_value=20.0, width=-1, indent=1,size=2)
+                                                        max_value=20.0, width=-1, indent=1,size=2)
                         dpg.add_text("Points", indent=1)
                         points = dpg.add_input_intx(default_value=[100,100],min_value=0, 
                                                     max_value=10000.0, width=-1, 
                                                     indent=1,callback=guess_time,size=2)
                         dpg.add_text("Count Time (ms)")
                         ct = dpg.add_input_float(default_value=10.0,min_value=0.0,max_value=10000.0, 
-                                                 width=-1.0,step=0,callback=guess_time)
+                                                    width=-1.0,step=0,callback=guess_time)
                         dpg.add_text("Wait Time (ms)")
                         wt = dpg.add_input_float(default_value=1.0,min_value=0.0,max_value=10000.0, 
-                                                 width=-1,step=0,callback=guess_time)
+                                                    width=-1,step=0,callback=guess_time)
                         dpg.add_text("Estimate Scan Time")
                         st = dpg.add_input_text(default_value="00:00:00",width=-1, readonly=True)
                         guess_time()
@@ -223,11 +217,11 @@ with dpg.window(label="Plot") as main_window:
                                                     callback=cursor_drag,
                                                     default_value=(0.5,0.5))
                             cx = dpg.add_drag_line(color=(204,36,29,122),parent=plot_id,
-                                                   callback=cursor_drag,
-                                                   default_value=0.5,vertical=True)
+                                                    callback=cursor_drag,
+                                                    default_value=0.5,vertical=True)
                             cy = dpg.add_drag_line(color=(204,36,29,122),parent=plot_id,
-                                                   callback=cursor_drag,
-                                                   default_value=0.5,vertical=False)
+                                                    callback=cursor_drag,
+                                                    default_value=0.5,vertical=False)
                             # REQUIRED: create x and y axes
                             heat_x = dpg.add_plot_axis(dpg.mvXAxis, label="x")
                             heat_y = dpg.add_plot_axis(dpg.mvYAxis, label="y")
@@ -238,7 +232,7 @@ with dpg.window(label="Plot") as main_window:
 
                     with dpg.child(width=-0,autosize_y=True):
                         dpg.add_colormap_scale(min_scale=0,max_scale=1000,
-                                               width=100,height=-1,id=colormap_id)
+                                                width=100,height=-1,id=colormap_id)
                         dpg.add_same_line()
                         with dpg.plot(label="Histogram", width=-1,height=-1) as histogram:
                             hist_y = dpg.add_plot_axis(dpg.mvXAxis,label="Occurance")
@@ -246,19 +240,11 @@ with dpg.window(label="Plot") as main_window:
                             dpg.add_area_series([0],[0],parent=hist_x,
                                                 fill=[120,120,120,120],id=histogram_id)
                             dpg.add_drag_line(callback=set_scale,default_value=0,
-                                              parent=histogram,id=line1_id,vertical=False)
+                                                parent=histogram,id=line1_id,vertical=False)
                             dpg.add_drag_line(callback=set_scale,default_value=0,
-                                              parent=histogram,id=line2_id,vertical=False)
+                                                parent=histogram,id=line2_id,vertical=False)
                     dpg.set_item_font(plot_id,"plot_font")
                     for wid in [colormap_id, plot_id]:
                         dpg.set_colormap(wid,dpg.mvPlotColormap_Viridis)
 
-        with dpg.tab(label="Logger") as log_pane:
-            logger = dpg_logger.mvLogger(parent=log_pane)
-
-dpg.set_primary_window(main_window, True)
-dpg.setup_viewport()
-#dpg.show_metrics()
-#dpg.show_documentation()
-#dpg.show_font_manager()
-dpg.start_dearpygui()
+rdpg.start_dpg()

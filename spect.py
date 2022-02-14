@@ -1,17 +1,23 @@
 from time import sleep #time delay
 import numpy as np
 import ctypes as ct #C compatible data types
+from datetime import datetime
+from threading import Thread
+from warnings import warn
+import sys
 
 # Annoying Int Defs from the andor dll header
 DRV_SUCCESS = 20002
 DRV_IDLE = 20073
 DRV_NOT_INITIALIZED = 20075
-DRV_TEMPERATURE_STABILIZED = 20036
+DRV_NO_NEW_DATA = 20024
+DRV_TEMP_NOT_REACHED = 20037
+DRV_TEMP_STABILIZED = 20036
+DRV_TEMP_NOT_STABILIZED = 20035
 SHAMROCK_SUCCESS = 20202
 
 class Spectrometer():
     def __init__(self, config_dic={}, **kwargs):
-
         # Default configuration and values
         config = {"_read_mode" : 4,
                   "_acq_mode"  : 1,
@@ -28,7 +34,14 @@ class Spectrometer():
                   "_warm_temp" : -20,
                   "_cold_temp" : -70,
 
-                  "_coeffs" : [535.201211,0.1265351,7.92000327e-06,-3.76483987e-09]
+                  #wl = 715.44 with grating #2
+                  #"_coeffs" : [585.47071,0.260088882,3.24016036e-05,-2.11424503e-08]
+                  #wl = 817.57 with grating #2
+                  #"_coeffs" : [686.959837,0.276316309,-4.86947064e-06,1.01879426e-09]
+                  #wl = 600.38 with grating #3 (600l)
+                  "_coeffs" : [536.867892,0.133935535,-2.73442347e-07,-9.95078791e-10]
+                  #Dodgy calibration at 823.07 on grating #2
+                  #"_coeffs" : [683.378255,0.273975792,-1.70519679e-06,-1.05695461e-09]
                  }
 
         # Modify config with parameters
@@ -54,12 +67,14 @@ class Spectrometer():
         self.api.SetReadMode.argtypes = [ct.c_int]
         self.api.SetAcquisitionMode.argtypes = [ct.c_int]
         self.api.SetExposureTime.argtypes = [ct.c_float]
+        self.api.SetSingleTrack.argtypes = [ct.c_int,ct.c_int]
 
         # Path to directory containing detector.ini
         # Not actually needed
         # Should not be changed unless you know what you're doing.
         # Needs to be a bytes string due to conversion to C char *.
         path = b""
+
         print("Initializing Device, this takes a few seconds...")
         stat1 = self.api.Initialize(ct.c_char_p(path))
         stat2 = self.sapi.ShamrockInitialize(ct.c_char_p(path))
@@ -80,11 +95,11 @@ class Spectrometer():
         except Exception as e:
             print("Error occured during Setup, shutting down:")
             self.api.ShutDown()
+            self.sapi.ShamrockClose()
             raise(e)
         
         def __del__(self):
             self.close(force=True)
-        
 
     ##########################
     # Acquisition Management #
@@ -97,6 +112,19 @@ class Spectrometer():
     def exp_time(self, time):
         self._exp_time = time
         self.api.SetExposureTime(self._exp_time)
+        times = self.get_timings()
+        print(f"Exp Time actually set to {times[0]:.2e}")
+        print(f"Cycle Time is {times[2]:.2e}")
+        self._cycle_time = times[2]
+
+    def get_timings(self):
+        exp = ct.c_float()
+        acc = ct.c_float()
+        kin = ct.c_float()
+        self.api.GetAcquisitionTimings(ct.byref(exp),
+                                       ct.byref(acc),
+                                       ct.byref(kin))
+        return exp.value, acc.value, kin.value
 
     def get_sensor_size(self):
         h_pixels = ct.c_int()
@@ -106,7 +134,8 @@ class Spectrometer():
         self._v_pixels = v_pixels.value
         return (self._h_pixels, self._v_pixels)
         
-    def set_image(self,h_bin,v_bin,h_start,h_width,v_start,v_width):
+    def set_image(self,h_bin=1,v_bin=1,h_start=1,h_width=1024,v_start=1,v_width=256):
+        self.api.SetReadMode(4)
         if h_bin > 1:
             print("Warning, recommended to keep horizontal binning at 1.")
         if (h_bin < 1 or h_bin > self._h_pixels):
@@ -148,22 +177,93 @@ class Spectrometer():
             print("Setting binning to next power of 2: %d" % vbin)
         return self.set_image(1,vbin,1,1024,1,16)
         
+    def prep_acq(self):
+        return self.api.PrepareAcquisition()
+
     def get_acq(self):
         if self.get_status() != DRV_IDLE:
             raise RuntimeError("Spectrometer is not Idle")
-        self.api.StartAcquisition()
         size = [self._v_width,self._h_width]
         data = (ct.c_long * (size[0] * size[1]))()
-        while self.get_status() != DRV_IDLE:
-            # Check again in a fraction of the exposure time
-            sleep(self._exp_time/5)
-        self.api.GetAcquiredData(ct.byref(data),ct.c_ulong(size[0]*size[1]))
+
+        # Start acquirinng and wait for the acquisition to be done, 
+        # signaled by the driver
+        # timeout set to 1.5 times the acquisition cycle time.
+        self.api.StartAcquisition()
+        resp = self.api.WaitForAcquisitionTimeOut(int(self._cycle_time * 3 * 1000))
+        if resp == DRV_NO_NEW_DATA:
+            if self.get_status() != DRV_IDLE:
+                raise RuntimeError("Waiting on spectrometer timed out")
+        elif resp != DRV_SUCCESS:
+            raise RuntimeError("An unknown error occured")
+        self.api.GetMostRecentImage(ct.byref(data),ct.c_ulong(size[0]*size[1]))
         return np.array(data).reshape(size)
+
+    def run_video(self,max_runs=-1,process_callback=None,cycle_delay=None):
+        if self.get_status() != DRV_IDLE:
+            raise RuntimeError("Spectrometer is not Idle")
+        self.api.SetAcquisitionMode(5) # Set mode to run till abort
+        if process_callback is None:
+            process_callback = lambda *args: None
+
+        size = [self._v_width,self._h_width]
+        data = (ct.c_long * (size[0] * size[1]))()
+        error = False
+        interrupted = False
+        self.api.StartAcquisition()
+        i = 0
+        while i != max_runs:
+            try:
+                ret = self.api.WaitForAcquisitionTimeOut(int(self._exp_time * 1.5 * 1000))
+                if ret == DRV_NO_NEW_DATA:
+                    continue
+                if ret != DRV_SUCCESS:
+                    error = True
+                    break
+                self.api.GetMostRecentImage(ct.byref(data),ct.c_ulong(size[0]*size[1]))
+                res = process_callback(i,datetime.now().timestamp(), data)
+                if res is not None and res is False:
+                    interrupted = True
+                    break
+                if cycle_delay is not None:
+                    sleep(cycle_delay)
+            except KeyboardInterrupt:
+                interrupted = True
+                break    
+            i += 1
+
+        ret = self.api.AbortAcquisition()
+        if ret != DRV_SUCCESS:
+            warn("Could not abort spectrometer acquisition!")
+        if error:
+            warn("Video mode exited due to error")
+        if interrupted:
+            warn("Video mode interrupted by Keyboard or Abort")
+        self.api.SetAcquisitionMode(1) # Reset to single shot
+
+    def async_run_video(self,max_runs=-1,process_callback=None,cycle_delay=None):
+        t = Thread(target=self.run_video, 
+                   args = (max_runs,process_callback,cycle_delay))
+        t.start()
+        return t
+
 
     def get_status(self):
         status = ct.c_int()
         self.api.GetStatus(ct.byref(status))
         return status.value
+
+    def set_fvb(self):
+        self._v_width = 1
+        self._h_width = 1024
+        return(self.api.SetReadMode(0))
+    
+    def set_single_track(self,center,width):
+        retval = self.api.SetReadMode(3)
+        self.api.SetSingleTrack(center,width)
+        self._h_width = 1024
+        self._v_width = width
+        return retval
 
     ##########################
     # Temperature Management #
@@ -208,8 +308,8 @@ class Spectrometer():
 
     def get_temp(self):
         temp = ct.c_int()
-        self.api.GetTemperature(ct.byref(temp))
-        return temp.value
+        ret = self.api.GetTemperature(ct.byref(temp))
+        return temp.value, ret
 
     def start_cooling(self):
         self.api.SetTemperature(self.cold_temp)
@@ -223,22 +323,30 @@ class Spectrometer():
             self.api.CoolerOFF()
             self.cooling = False
 
-    def waitfor_temp(self):
+    def waitfor_temp(self, stable=False, disp_callback = None):
         if self.cooling:
             target = self.cold_temp
-            # Sometimes it gets stuck at exactly the target, could round but this
-            # is easier.
-            comp = lambda temp, target: temp >= (target+1)
             print("Cooling Down, Please Wait.")
         else:
-            target = self.warm_temp
-            comp = lambda temp, target: temp <= (target-1)
-            print("Warming Up, Please Wait.")
+            print("Cooler not on, try calling self.start_cooling() first.")
+            return
+        print("",end='\r')
+        def default_callback(t_status,i):
+            spin = ['-','\\','|','/']
+            msg_lookup = {DRV_TEMP_NOT_REACHED:"Temperature not yet reached",
+                          DRV_TEMP_NOT_STABILIZED:"Temperature stabilizing"}
+            sys.stdout.write("\033[K")
+            print(f"{spin[i%4]} {msg_lookup[t_status[1]]}. Current: {t_status[0]}, Target: {target}",end='\r')
+            sleep(0.5)
+
+        if disp_callback is None:
+            disp_callback = default_callback 
+        waitfor = DRV_TEMP_STABILIZED if stable else DRV_TEMP_NOT_STABILIZED 
         try:
-            while (comp(temp := self.get_temp(),target)):
-                print("",end="\r")
-                print("Current Temp: %f, Target Temp: %f" % (temp,target), end="\r")
-                sleep(1)
+            i = 0
+            while (t_status:= self.get_temp())[1] != waitfor:
+                disp_callback(t_status,i)
+                i += 1
             print("")
             print("Target temperature reached!")
         except KeyboardInterrupt:
@@ -250,8 +358,6 @@ class Spectrometer():
     # System Management #
     #####################
     def close(self, force=False):
-        if (self.get_temp() < self.warm_temp and not force):
-            raise RuntimeError("Sensor must warmup before shutting down.")
         self.api.ShutDown()
         self.sapi.ShamrockClose()
         print("Spectrometer Closed")
@@ -274,7 +380,7 @@ class Spectrometer():
     # This is hella sketch and will likely result in a not properly calibrated
     # wavelength axis. Ideally use Andor to setup the range and 
     # get the proper calibration coeffs from there via file -> Configuration Files
-    # The current coeffs are correct for wl = 596.77
+    # The current coeffs are correct for wl = 715.44 with grating #2
     def set_central_wavelength(self, wavelength):
         current_wl = ct.c_float()
         self.sapi.ShamrockGetWavelength(0, ct.byref(current_wl))

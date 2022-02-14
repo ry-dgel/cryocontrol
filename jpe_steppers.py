@@ -4,12 +4,13 @@ import sys
 import numpy.typing as npt
 
 from jpe_coord_convert import JPECoord
+from time import time
 from pathlib import Path
-from subprocess import run
+from subprocess import Popen, run, DEVNULL, CREATE_NEW_CONSOLE
 from warnings import warn
 from threading import Thread
-from multiprocessing import Process
-from typing import Union, Callable
+from typing import Union, Callable, Tuple
+from time import sleep
 
 # Create root logger
 log = logging.getLogger("stepper")
@@ -22,7 +23,8 @@ ch.setFormatter(formatter)
 log.addHandler(ch)
 
 # Steam for writing all errors to a file
-fh = logging.FileHandler('errors.log')
+fh = logging.FileHandler('cryo_errors.txt')
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s:\n\t%(message)s" )
 fh.setLevel(logging.WARNING)
 fh.setFormatter(formatter)
 log.addHandler(fh)
@@ -31,25 +33,34 @@ log.addHandler(fh)
 # Note how we define z_min is different than jpe document
 # since we care about the sign of the position in the jpe coordinates.
 # So here, negative value is actually highest mirror position.
-stp_config = {"z_min" : -5750.0,          # um
-              "z_max" : -250.0,           # um
-              "um_per_click" : 0.3,     # um/Click
-              "R": 26.0,                # mm
-              "h": 58.9,                # mm
-              "gain" : 100.0,             # Unknown
-              "T" : 293,                # K
-              "z_res" : 0.3,            # um
-              "xy_res" : 0.8,           # um
-              "z_rel_lim" : 1.0,        # um
-              "z_lim" : [-10.0,0.0],        # um
-              "xy_rel_lim" : 5.0,       # um
+stp_config = {"z_min" : -5750.0,            # um
+              "z_max" : -250.0,             # um
+              "um_per_click" : 5/17,        # um/Click (250um per rev, 850 clicks per rev.)
+              "R": 26.0,                    # mm
+              "h": 58.9,                    # mm
+              "gain" : 60.0,                # Freq/Error i.e. Hz/Tick
+              "stuck_iterations" : 6,       # Integer
+              "T" : 293,                    # K
+              "z_res" : 0.3,                # um
+              "xy_res" : 0.8,               # um
+              "z_rel_lim" : 1.0,            # um
+              "z_lim" : [-4520,-3620],      # um
+              "xy_rel_lim" : 5.0,           # um
               "xy_lim" : [-1000.0,1000.0],  # um
-              "type" : "CA1801",        # Basically never change this
-              "exe_path" : r"C:\Users\Childresslab\Documents\cacli_emulator\cacli_emulator.exe",
-              "pos_path" : r"X:\DiamondCloud\Cryostat setup\Control\cryocontrol\emu_cryo_pos.csv"}
+              "type" : "CA1801",            # Basically never change this
+              "serial" : "1038E201702-004", # Basically never change this
+              "exe_path" : r"X:\DiamondCloud\Fiber_proj_ctrl_softwares\Cryo Control\JPE vis\CPS_control\cacli.exe",
+              "pos_path" : r"X:\DiamondCloud\Fiber_proj_ctrl_softwares\Cryo Control\JPE vis\PositionZeroRegister.asc"} 
 
 stp_conv = JPECoord(stp_config['R'], stp_config['h'],
                     stp_config['z_min'], stp_config['z_max'])
+
+# Error class for indicating bad positioning.
+class JPEPositionError(Exception):
+    pass
+
+class JPELimitError(Exception):
+    pass
 
 class JPEStepper():
 
@@ -64,7 +75,9 @@ class JPEStepper():
             be used to update the default stp_config configuration, allowing
             for only a few configuration variables to be passed in.
         """
-        config = stp_config.update(config)
+        new_config = stp_config.copy()
+        new_config.update(stp_config)
+        config = new_config
         # These set the absolute maximum positions of the stage
         # Unfortunately we can't easily zero the stage, so these
         # aren't super useful since we have no idea where the stage
@@ -102,6 +115,9 @@ class JPEStepper():
         self.res = np.array([config['xy_res'],
                              config['xy_res'],
                              config['z_res']])
+
+        #
+        self.stuck_iterations = config["stuck_iterations"]
         
         # The paths to relevant files, namely the executable that calls stage
         # commands, and where we save the position info between instances
@@ -113,6 +129,7 @@ class JPEStepper():
         else:
             self.emulator = False
             self.pipe = None
+        self.serial = config['serial']
 
         # The vectors that store the relevant zeroing and position offsets
         # As well as wether to subtract the offset for a given axis.
@@ -140,6 +157,7 @@ class JPEStepper():
 
         # Flag for tracking initialization.
         self.initialized = False
+        self.error_flag = False
 
     def __del__(self) -> None:
         if self.initialized:
@@ -189,7 +207,7 @@ class JPEStepper():
         return int(round(microns/self.um_conv))
 
     # User coordinates include position matching offset and toggleable zeroing
-    def user_to_stage(self, user_position:np.ndarray[3,float]) -> np.ndarray[3,float]:
+    def user_to_stage(self, user_position:npt.NDArray[np.float]) -> npt.NDArray[np.float]:
         """Converts a position in the easier to use 'user' reference frame
            into the more concrete 'stage' reference frame to which the actuator
            clicks actually correspond to.
@@ -218,7 +236,7 @@ class JPEStepper():
 
     # Stage coordinates is the raw clicks to z position conversion with no convenience
     # offsets.
-    def stage_to_user(self, stage_position:np.ndarray[3,float]) -> np.ndarray[3,float]:
+    def stage_to_user(self, stage_position:npt.NDArray[np.float]) -> npt.NDArray[np.float]:
         """Converts a position in the ocncrete 'stage' reference frame into the
         easier to use 'user' reference frame.
 
@@ -257,6 +275,8 @@ class JPEStepper():
 
         # Initialize CACLI with current parameters
         self.cacli("initialize", self.gain, self.type, self.temp)
+        # Indicate success
+        self.initialized = True
         # Check consistency between read and saved position
         # and update accordingly.
         user_pos, zero_pos, zeroing = self.read_pos_file()
@@ -270,16 +290,24 @@ class JPEStepper():
             # Assume the controller has been reset and the saved
             # position is accurate, so set the offset to be the saved position
             if all([cc == 0 for cc in cur_clicks]):
-                self.offset_position = user_pos
+                self.offset_position = cur_pos
+                log.warn("Discrepency found, offset_position with current position. Was the controller reset?")
+                self.user_set_position = user_pos
             # If it doesn't seem like the controller has been reset
             # assume there's a problem with the saved position, or we missed
-            # a few steps, so set the offset to match.
+            # a few steps, so assume the current position is correct.
+            # Immediately update the file accordingly.
             else:
-                self.offset_position = user_pos - cur_pos
-        self.user_set_position = user_pos
+                self.offset_position = np.zeros(3)
+                log.warn("Discrepency found, overwriting user_set_position with current position.")
+                self.user_set_position = np.copy(cur_pos)
+                self.write_pos_file()
+        # If everything matches, we don't need to change anything.
+        else:
+            self.offset_position = np.zeros(3)
+            self.user_set_position = user_pos
+        self.error_flag = False
 
-        # Indicate success
-        self.initialized = True
 
     def deinitialize(self) -> None:
         """Safely close the stage connection and save the current position to
@@ -293,7 +321,7 @@ class JPEStepper():
             self.close_pipe()
         self.initialized = False
 
-    def read_pos_file(self) -> tuple(np.ndarray(3,float),np.ndarray(3,float),list[bool]):
+    def read_pos_file(self) -> Tuple[npt.NDArray[np.float],npt.NDArray[np.float],list[bool]]:
         """ Read out the previously saved position file for consistency checking.
             This file contains the previous user position, zero offset and what
             axis was zeroed. All of which is returned as two arrays and a list.
@@ -302,7 +330,7 @@ class JPEStepper():
 
         Returns
         -------
-        tuple(np.ndarray(3,float),np.ndarray(3,float),list[bool])
+        tuple(np.ndarray[3,float],np.ndarray[3,float],list[bool])
             The previous user position, zero position, and zero status.
         """
         """
@@ -362,10 +390,10 @@ class JPEStepper():
         with self.pos_file.open('w') as f:
             f.write("Register: User Position\n")
             for pos in position:
-                f.write(f"{pos:.6}\n")
+                f.write(f"{pos:.8f}\n")
             f.write("Register: Zero Values\n")
             for zpos in zero:
-                f.write(f"{zpos:.6}\n")
+                f.write(f"{zpos:.8f}\n")
             f.write("Register: Zero status (XY/Z)\n")
             for zset in zeroing:
                 val = 1 if zset else 0
@@ -376,15 +404,20 @@ class JPEStepper():
         commands. Otherwise, the usb connection is opened and closed between
         every call.
         """
-        func = lambda _: run([self.exe, f"serv:self.serial"])
-        self.pipe = Process(target=func)
-        self.pipe.start()
+
+        self.pipe = Popen([self.exe,f"SERV:{self.serial}"],creationflags=CREATE_NEW_CONSOLE)
+        print("Opening pipe, please wait")
+        sleep(4)
+        if self.pipe.poll() is not None:
+            raise RuntimeError("Pipe exited immediately, is this a duplicate?")
+        else:
+            return
 
     def close_pipe(self) -> None:
         """Closes the connection started by `open_pipe()`.
         """
         self.pipe.terminate()
-        self.pipe.close()
+        self.pipe.wait()
 
     def cacli(self, command:str, *args:list[str]) -> str:
         """Low level cacli access command, through which all other stage
@@ -412,6 +445,8 @@ class JPEStepper():
         str
             The full string response of the cacli executable.
         """
+        if not self.initialized and not (command in ['FBEN','initialize']):
+            raise RuntimeError("Stage not Initialized")
         commands = {"initialize"   : 'FBEN',
                     "deinitialize" : 'FBXT',
                     "set"          : 'FBCS',
@@ -448,14 +483,24 @@ class JPEStepper():
             A dictionary of the status values, with each key the name, and each
             value the corresponding value.
         """
-        msg = self.cacli('get')
-        lines = msg.splitlines()
-        splits = [line.split(':') for line in lines[1:]]
-        state = {split[0] : int(split[1]) for split in splits}
-        return state
+        for i in range(4):
+            try:
+                msg = self.cacli('get')
+                lines = msg.splitlines()
+                splits = [line.split(':') for line in lines[1:]]
+                state = {split[0] : int(split[1]) for split in splits}
+                return state
+            except ValueError as e:
+                print("Error occured while getting status, trying again:")
+                print(e)
+            except IndexError as e:
+                print("Error occured while getting status, trying again:")
+                print(e)
+
+        raise RuntimeError("Could not get stage status.")
     
     @property
-    def clicks(self) -> np.ndarray(3,int):
+    def clicks(self) -> npt.NDArray[np.int]:
         """Get the clicks of each actuator position.
 
         Returns
@@ -467,7 +512,7 @@ class JPEStepper():
         return np.array([state[name] for name in ['POS1','POS2','POS3']]).astype(int)
 
     @property
-    def position(self) -> np.ndarray(3,float):
+    def position(self) -> npt.NDArray[np.float]:
         """Get the current cartesian position of the stage in the user
         reference frame, converted to microns.
 
@@ -486,7 +531,7 @@ class JPEStepper():
 
     @property
     # Stage position with offset to match initialization, but no zeroing.
-    def abs_position(self) -> np.ndarray(3,float):
+    def abs_position(self) -> npt.NDArray[np.float]:
         """Get the current cartesian position of the stage in the user
         reference frame, ignoring zeroing, converted to microns.
 
@@ -504,7 +549,8 @@ class JPEStepper():
         return pos
 
     def set_position(self,x:float=None,y:float=None,z:float=None,
-                     monitor:bool=False, write_pos:bool=True) -> None:
+                     monitor:bool=True, write_pos:bool=True,
+                     monitor_kwargs:dict = {}) -> None:
         """Set the stage position according to the given point in the user
         reference frame. Will check if the motion is safe, and if needed, also
         back out the stage in z before moving in xy and then returning to the
@@ -527,6 +573,8 @@ class JPEStepper():
         write_pos : bool, optional
             Wether to write the position of the stage to the position file after 
             the motion only applicable if monitor=True, by default True
+        monitor_kwargs : dict, optional
+            Extra keywords to pass to the monitor function.
         """
         # Replace None values with previously set user position
         # We avoid using the current position in cases where the xyz value
@@ -536,8 +584,12 @@ class JPEStepper():
         new_pos = [pos if pos is not None else self.user_set_position[i] 
                    for i,pos in enumerate(new_pos)]
         new_pos = np.array(new_pos,dtype=np.float)
+        # If we're not actually moving, skip the motion steps
+        if np.all(new_pos == self.user_set_position):
+            log.info("New user position same as current, skipping move")
+            return
 
-        self.enforce_limits(new_pos, self.user_set_position)
+        self.enforce_limits(new_pos, self.position)
         log.debug(f"New user position: {new_pos}")
 
         # Convert from User Position to Stage Position
@@ -551,8 +603,11 @@ class JPEStepper():
 
         # If we're not actually moving, skip the motion steps
         if np.all(z_clicks == self.clicks):
+            log.info("New clicks same as current, skipping move")
             return
 
+        ## FOR TESTING
+        log.warn(f"New position set to {new_pos}.")
         # Calculate the lowest possible z position along the path
         low_z = self.lowest_z(z_clicks)
         # We'll compare this to what the shortest allowed position should be
@@ -560,7 +615,8 @@ class JPEStepper():
         # If the biggest z value (shortest position) is larger then the allowable
         # value, by more than the stepper resolution we'll take extra care
         if low_z - max_z > self.res[2]:
-            self.compensate_z_move(new_pos,max_z,low_z,monitor=False,write_pos=True)
+            self.compensate_z_move(new_pos,max_z,low_z,monitor=monitor,write_pos=monitor,
+                                   monitor_kwargs = monitor_kwargs)
             # All motion is now completed, so we can return.
             return
         
@@ -572,18 +628,20 @@ class JPEStepper():
         # This will be done in the recursive calls performed in the bad z, xy
         # motion case.
         self.user_set_position = np.copy(new_pos)
+        log.debug(f"Set {self.user_set_position = }")
         # Set the position and make sure response is valid.
         msg = self.cacli('set', *z_clicks)
         if msg != "STATUS : POSITION CONTROL SET":
             log.warn(f"Cacli returned unexpected result: {msg}")
         log.debug(f"Set new clicks to {z_clicks}, with position {new_pos}.")
-        log.debug(f"Set {self.user_set_position = }")
         # Monitor then write if needed.
         # Writing position relies on stage not being in motion
         # So can only write if we bother to wait for the motion to be done
         # This can also be done manually later on.
         if monitor:
-            self.monitor_move(write_pos,display_callback=print)
+            self.monitor_move(write_pos,**monitor_kwargs)
+        ## For Testing
+        log.warn(f"After motion position is {self.position}.")
 
     # To calculate the lowest Z possible during a motion, we take the target
     # position and, for each actuator, set the number of clicks to the 
@@ -591,13 +649,13 @@ class JPEStepper():
     # Then from this new clicks array, we compute the stage position and return
     # the z value. This should correspond to the shortest possible cavity attained
     # during the motion of the stage, assuming the worst condition.
-    def lowest_z(self,new_clicks:np.ndarray(3,int)) -> float:
+    def lowest_z(self,new_clicks:npt.NDArray[np.int]) -> float:
         """Calculate the lowest possible z position between the position
         set by `new_clicks` and the current position in clicks.
 
         Parameters
         ----------
-        new_clicks : np.ndarray(3,int)
+        new_clicks : npt.NDArray[np.int]
             The position we'd like to move to, in actuator clicks.
 
         Returns
@@ -618,9 +676,10 @@ class JPEStepper():
         # Return the z value.
         return user_pos[2]
     
-    def compensate_z_move(self,new_pos:np.ndarray(3,float),
+    def compensate_z_move(self,new_pos:npt.NDArray[np.float],
                           max_z:float,low_z:float,
-                          monitor:bool=False,write_pos:bool=True) -> None:
+                          monitor:bool=False,write_pos:bool=True,
+                          monitor_kwargs:dict = {}) -> None:
         """Perform an xyz motion while compensating for any sag during
         the change in xy position. First moves up in z by the amount needed
         to avoid bad stuff, then moves in xy, and finally returns to the desired
@@ -644,12 +703,14 @@ class JPEStepper():
             For each step, wether to write the position of the stage to the 
             position file after the motion only applicable if monitor=True, by 
             default True
+        monitor_kwargs : dict, optional
+            Extra keywords to pass to the monitor function.
         """
         # First compute by how much we should move, it should always be
         # at least one click
         delta = np.min([max_z - low_z,-self.res[2]])
         # Then, convert the distance to clicks and back, taking the floor
-        # So that we always round to a large number of clicks upwards.
+        # So that we always round to a larger number of clicks upwards.
         delta = np.floor(delta / self.um_conv) * self.um_conv
         # Since the relative limits might be smaller than this amount in z.
         # We temporarily override them
@@ -663,39 +724,42 @@ class JPEStepper():
         if rel_lims[2] < np.abs(delta):
             new_lims = rel_lims.copy() # Make a copy
             # Set the new limit to how much we're going to move
-            new_lims[2] = np.abs(delta) 
+            new_lims[2] = max([np.abs(delta),np.abs(delta) + (new_pos[2]-self.position[2])])
             self.rel_lims = new_lims
         # Notify user that we're moving
-        log.info(f"Shortest z position {low_z} is > {max_z}, moving up by {delta} first.")
+        log.info(f"Shortest z position {low_z} is > {max_z}, moving z by {delta} first.")
         # First move up by the calculate delta.
-        self.move_rel(0,0,delta,monitor=monitor,write_pos=write_pos)
+        self.move_rel(0,0,delta,monitor=monitor,write_pos=write_pos,
+                     monitor_kwargs = monitor_kwargs)
         log.debug(f"Compensated z position: {self.position = }, {self.user_set_position = }")
         # Then do the xy move, keeping the z position to what we just set it as
         log.info(f"Performing compensated z move to xy = ({new_pos[0]},{new_pos[1]})")
-        self.set_position(new_pos[0],new_pos[1],None,monitor=monitor,write_pos=write_pos)
+        self.set_position(new_pos[0],new_pos[1],None,monitor=monitor,write_pos=write_pos,
+                           monitor_kwargs = monitor_kwargs)
         log.debug(f"Non decompensated position: {self.position}, {self.user_set_position = }")
         # Then, set the z position to what the original movement wanted.
         log.info(f"Returning to desired z position {new_pos[2]}.")
         log.debug(f"Final Position {self.position}, {self.user_set_position = }")
-        self.set_position(None,None,new_pos[2],monitor=monitor,write_pos=write_pos)
+        self.set_position(None,None,new_pos[2],monitor=monitor,write_pos=write_pos,
+                          monitor_kwargs = monitor_kwargs)
         # Then, reset the relative limits to what they were
         self.rel_lims = rel_lims
 
     @property
-    def error(self) -> np.ndarray(3,int):
+    def error(self) -> npt.NDArray[np.int]:
         """Get the current error on all the actuators.
 
         Returns
         -------
-        np.ndarray(3,int)
+        npt.NDArray[np.int]
             The error, i.e. clicks from the set number of clicks. On each
             actuator. Should always be zero if the stage isn't moving.
         """
         state = self.get_status()
         return [state[name] for name in ['ERR1','ERR2','ERR3']]
 
-    def enforce_limits(self,new_pos:np.ndarray(3,float),
-                            cur_pos:np.ndarray(3,float)) -> None:
+    def enforce_limits(self,new_pos:npt.NDArray[np.float],
+                            cur_pos:npt.NDArray[np.float]) -> None:
         """Checks the new position compared to the current position and does
         nothing if all the bounds are respected. Otherwise, raises an error.
         There are three types of bounds to follow. Relative bounds set by
@@ -708,14 +772,14 @@ class JPEStepper():
 
         Parameters
         ----------
-        new_pos : np.ndarray(3,float)
+        new_pos : npt.NDArray[np.float]
             The position we would like to move to, in the user reference frame.
-        cur_pos : np.ndarray(3,float)
+        cur_pos : npt.NDArray[np.float]
             The current user set position.
 
         Raises
         ------
-        ValueError
+        JPEPositionError
             Raised if the new position violates any of the three possible bounds.
             Relative, Absolute, Hard. Error message contains any relevant
             information.
@@ -727,24 +791,25 @@ class JPEStepper():
                 msg = (f"{axis[i]} rel position invalid. Change {delta} "
                                   f"larger than relative limit {self.rel_lims[i]}")
                 log.error(msg)
-                raise ValueError(msg)
+                raise JPEPositionError(msg)
 
         for i, pos in enumerate(new_pos):
             if not (self.lims[i][0] - self.res[i]/2 <= pos <= self.lims[i][1] + self.res[i]/2):
                 msg = (f"{axis[i]} abs position invalid. Position {pos} "
                                   f"outside range {self.lims[i]}")
                 log.error(msg)
-                raise ValueError(msg)
+                raise JPEPositionError(msg)
 
         # Convert from User Position to Stage Position
         abs_pos = self.abs_position
         if not stp_conv.check_bounds(abs_pos[0],abs_pos[1],abs_pos[2]):
             msg = (f"Absolute position {abs_pos} outside hard limits.")
             log.error(msg)
-            raise ValueError(msg)
+            raise JPEPositionError(msg)
 
     def move_rel(self,x:float = 0.0, y:float = 0.0, z:float = 0.0,
-                 monitor:bool = False, write_pos:bool = True) -> None:
+                 monitor:bool = True, write_pos:bool = True,
+                 monitor_kwargs:dict = {}) -> None:
         """
         Move a relative distance from the current position.
         x,y,z set the distance to travel in the cartesian coordinates of the stage.
@@ -773,6 +838,8 @@ class JPEStepper():
             Wether to write the position of the stage to the 
             position file after the motion only applicable if monitor=True, by 
             default True
+        monitor_kwargs : dict, optional
+            Extra keywords to pass to the monitor function.
         """
         new_pos = list(self.user_set_position + np.array([x,y,z]))
         for i, rel in enumerate([x,y,z]):
@@ -780,10 +847,142 @@ class JPEStepper():
                 new_pos[i] = None
         log.info(f"Moving {np.array([x,y,z])} um along each axis.")
 
-        self.set_position(*new_pos, monitor, write_pos)
+        self.set_position(*new_pos, monitor, write_pos, monitor_kwargs=monitor_kwargs)
+
+    def move_rel_xy(self,x:float = 0.0, y:float = 0.0,
+                 monitor:bool = True, write_pos:bool = True,
+                 monitor_kwargs:dict = {}) -> None:
+        """
+        Move a relative distance from the current position.
+        x,y,z set the distance to travel in the cartesian coordinates of the stage.
+        This is done by updating the user_set_pos and then moving to this new 
+        position, this way, imprecision in the stage will still result in +motion -motion
+        giving a net zero position change.
+
+        The position change will snap to the nearest reachable point. So a change
+        of less than half the resolution will not move, while a change within 0.5-1 * resolution
+        will result in a single step of motion.
+
+        Parameters
+        ----------
+        x : float, optional
+            Distance in microns to move along the x-axis, by default 0.0
+        y : float, optional
+            Distance in microns to move along the y-axis, by default 0.0
+
+        monitor : bool, optional
+            Wether to montor the motion, polling the stage 
+            position and printing it while moving before returning from the 
+            function, by default False
+        write_pos : bool, optional
+            Wether to write the position of the stage to the 
+            position file after the motion only applicable if monitor=True, by 
+            default True
+        monitor_kwargs : dict, optional
+            Extra keywords to pass to the monitor function.
+        """
+        new_pos = list(self.user_set_position + np.array([x,y,0.0]))
+        for i, rel in enumerate([x,y]):
+            if np.abs(rel) <= self.res[i]/2:
+                new_pos[i] = None
+        # Never moving in z
+        new_pos[2] = None
+        log.info(f"Moving {np.array([x,y])} um along (x,y) axes.")
+
+        self.set_position(*new_pos, monitor, write_pos, monitor_kwargs=monitor_kwargs)
+
+    def move_up(self,z:float = 0.0,
+                monitor:bool = True, write_pos:bool = True,
+                monitor_kwargs:dict = {}) -> None:
+        """
+        Move a relative distance up from the current position.
+        z sets the distance to travel upwards.
+        This is done by updating the user_set_pos and then moving to this new 
+        position, this way, imprecision in the stage will still result in +motion -motion
+        giving a net zero position change.
+
+        The position change will snap to the nearest reachable point. So a change
+        of less than half the resolution will not move, while a change within 0.5-1 * resolution
+        will result in a single step of motion.
+
+        Parameters
+        ----------
+        z : float, optional
+            Distance in microns to move upwards, must be positive, by default 0.0
+
+        monitor : bool, optional
+            Wether to montor the motion, polling the stage 
+            position and printing it while moving before returning from the 
+            function, by default False
+        write_pos : bool, optional
+            Wether to write the position of the stage to the 
+            position file after the motion only applicable if monitor=True, by 
+            default True
+        monitor_kwargs : dict, optional
+            Extra keywords to pass to the monitor function.
+        """
+        if z < 0.0:
+            raise JPEPositionError("z value in move up must be positive.")
+        ##################################################################
+        # NEGATIVE VALUES IS GOING UP. ABSOLUTELY CORRECT DO NOT CHANGE! #
+        new_pos = list(self.user_set_position - np.array([0.0,0.0,z]))   #
+        ##################################################################
+        if z <= self.res[2]/2:
+            new_pos[2] = None
+        # Never moving in xy
+        new_pos[0] = None
+        new_pos[1] = None 
+        log.info(f"Moving {z} um upwards.")
+
+        self.set_position(*new_pos, monitor, write_pos, monitor_kwargs=monitor_kwargs)
+
+    def move_down(self,z:float = 0.0,
+                  monitor:bool = True, write_pos:bool = True,
+                  monitor_kwargs:dict = {}) -> None:
+        """
+        Move a relative distance down from the current position.
+        z sets the distance to travel downwards.
+        This is done by updating the user_set_pos and then moving to this new 
+        position, this way, imprecision in the stage will still result in +motion -motion
+        giving a net zero position change.
+
+        The position change will snap to the nearest reachable point. So a change
+        of less than half the resolution will not move, while a change within 0.5-1 * resolution
+        will result in a single step of motion.
+
+        Parameters
+        ----------
+        z : float, optional
+            Distance in microns to move downwards, must be positive, by default 0.0
+
+        monitor : bool, optional
+            Wether to montor the motion, polling the stage 
+            position and printing it while moving before returning from the 
+            function, by default False
+        write_pos : bool, optional
+            Wether to write the position of the stage to the 
+            position file after the motion only applicable if monitor=True, by 
+            default True
+        monitor_kwargs : dict, optional
+            Extra keywords to pass to the monitor function.
+        """
+        if z < 0.0:
+            raise JPEPositionError("z value in move down must be positive.")
+        ####################################################################
+        # POSITIVE VALUES IS GOING DOWN. ABSOLUTELY CORRECT DO NOT CHANGE! #
+        new_pos = list(self.user_set_position + np.array([0.0,0.0,z]))     #
+        ####################################################################
+        if z <= self.res[2]/2:
+            new_pos[2] = None
+        # Never moving in xy
+        new_pos[0] = None
+        new_pos[1] = None 
+        log.info(f"Moving {z} um downwards.")
+
+        self.set_position(*new_pos, monitor, write_pos, monitor_kwargs=monitor_kwargs)
 
     def monitor_move(self, write_pos:bool = True, 
-                     display_callback:Callable = lambda *args: None, 
+                     display_callback:Callable = None, 
                      abort_callback:Callable = lambda *args: False) -> int:
         """Monitor the stage for the current motion. Until either a reason
         to abort is encountered, or until the stage no longer reports that it
@@ -817,6 +1016,8 @@ class JPEStepper():
         prev_error = np.array([0,0,0])
         stuck_count = 0
         aborted = False
+        if display_callback is None:
+            display_callback = self.disp_status
         while True:
             # Get the status of the stage
             status = self.get_status()
@@ -847,10 +1048,11 @@ class JPEStepper():
             else:
                 stuck_count = 0
 
-            if stuck_count > 2:
+            if stuck_count > self.stuck_iterations:
                 self.cacli('stop')
                 aborted = True
                 break
+            prev_error = error
 
         if aborted:
             log.warn("Something went wrong while moving, motion aborted.")
@@ -912,10 +1114,10 @@ class JPEStepper():
         either fully cold or fully ambient.
         """
         self.deinitialize()
-        self.gain = 200
+        self.gain = 180
         self.temp = 10
         self.initialize()
-        log.info("Set Gain = 300, Temp = 10 for cryo operation.")
+        log.info("Set Gain = 180, Temp = 10 for cryo operation.")
 
     def set_roomtemp(self) -> None:
         """Deinitialize and reinitialize the stage, changing the gain and
@@ -924,13 +1126,13 @@ class JPEStepper():
         either fully cold or fully ambient.
         """
         self.deinitialize()
-        self.gain = 100
+        self.gain = 60
         self.temp = 293
         self.initialize()
-        log.info("Set Gain = 100, Temp = 293 for RT operation.")
+        log.info("Set Gain = 60, Temp = 293 for RT operation.")
 
     @property
-    def rel_lims(self) -> np.ndarray[3,float]:
+    def rel_lims(self) -> npt.NDArray[np.float]:
         """Get the relative motion limit for each axis.
 
         Returns
@@ -941,7 +1143,7 @@ class JPEStepper():
         return self._rel_lims
         
     @rel_lims.setter
-    def rel_lims(self,rel_lims:np.ndarray[3,float]) -> None:
+    def rel_lims(self,rel_lims:npt.NDArray[np.float]) -> None:
         """Set the relative motion limit for each axis.
         Must be greater than zero.
 
@@ -953,7 +1155,7 @@ class JPEStepper():
 
         Raises
         ------
-        ValueError
+        JPELimitError
             Error returned if any of the relative limits is less than zero.
             Sign doesn't matter for these, so keep positive.
         """
@@ -962,11 +1164,11 @@ class JPEStepper():
             if lim < 0:
                 msg = (f"{axis[i]} invalid relative limit {lim}. Must be positive.")
                 log.error(msg)
-                raise ValueError(msg)
+                raise JPELimitError(msg)
         self._rel_lims = rel_lims
 
     @property
-    def lims(self) -> np.ndarray[(3,2),float]:
+    def lims(self) -> npt.NDArray[np.float]:
         """Get the soft bounds on each axis' motion.
 
         Returns
@@ -976,7 +1178,7 @@ class JPEStepper():
         """
         return self._lims
     @lims.setter
-    def lims(self, limits:np.ndarray[(3,2),float]) -> None:
+    def lims(self, limits:npt.NDArray[np.float]) -> None:
         """Set the soft bounds on each axis' motion.
 
         Parameters
@@ -1016,6 +1218,8 @@ class JPEStepper():
             self.zero_position[1] += self.position[1]
             self.user_set_position[0] = 0.0
             self.user_set_position[1] = 0.0
+        # Write status to file.
+        self.write_pos_file()
 
     def toggle_zero_z(self) -> None:
         """Toggles between zeroin the z stage position or not.
@@ -1032,3 +1236,64 @@ class JPEStepper():
             self.zeroing[1] = True
             self.zero_position[2] += self.position[2]
             self.user_set_position[2] = 0.0
+        # Write status to file.
+        self.write_pos_file()
+
+    def disp_status(self,state:dict) -> None:
+        """A handy function for displaying the stage status, useful
+           for monitoring the motion of the stage.
+
+        Parameters
+        ----------
+        state : dict
+            The dictonary returned by `self.get_status()` that contains the
+            current stage position in clicks, as well as the error.
+        """
+        clicks = np.array([state[name] for name in ['POS1','POS2','POS3']]).astype(int)
+        errors = np.array([state[name] for name in ['ERR1','ERR2','ERR3']]).astype(int)
+        z_um = self.clicks_to_microns(clicks)
+        e_um = self.clicks_to_microns(errors)
+        stage_pos = stp_conv.cart_from_zs(z_um)
+        stage_errors = stp_conv.cart_from_zs(e_um)
+        user_pos = self.stage_to_user(stage_pos)
+        print("Status Update:")
+        print(f"\tUser:\t({', '.join([f'{val:.2f}' for val in user_pos])})")
+        print(f"\tStage:\t({', '.join([f'{val:.2f}' for val in stage_pos])})")
+        print(f"\tClicks:\t({', '.join([f'{val}' for val in clicks])})")
+        print(f"\tError:\t({', '.join([f'{val}' for val in errors])})")
+        print(f"\tE-(um):\t({', '.join([f'{val:.2f}' for val in stage_errors])})")
+
+    def write_status(self,state:dict,filename:str,disp=True) -> None:
+        """A handy function that writes the user position to a file
+           from the stage status, useful for monitoring the motion of the stage.
+
+        Parameters
+        ----------
+        state : dict
+            The dictonary returned by `self.get_status()` that contains the
+            current stage position in clicks, as well as the error.
+        filename : str
+            The directory of the file to which to write the position information.
+        disp : bool, optional
+            If True, will also call disp_status to display the stage
+            position information for the current state. By default True.
+        """
+        clicks = np.array([state[name] for name in ['POS1','POS2','POS3']]).astype(int)
+        z_um = self.clicks_to_microns(clicks)
+        stage_pos = stp_conv.cart_from_zs(z_um)
+        user_pos = self.stage_to_user(stage_pos)
+
+        with open (filename,'a') as f:
+            f.write(f"{time()}, {','.join([f'{pos:.2f}' for pos in user_pos])}\n")
+        if disp:
+            self.disp_status(state)
+
+    def track_motion(self,x:float=None,y:float=None,z:float=None,
+                     filename:str = "move.csv") -> None:
+        with open(filename,'w') as f:
+            f.write(f"{time()}, {','.join([f'{pos:.2f}' for pos in self.position])}\n")
+        monitor_func = lambda state: self.write_status(state,filename=filename)
+        self.set_position(x,y,z,monitor=True,
+                          monitor_kwargs={'display_callback' : monitor_func})
+        with open(filename,'a') as f:
+            f.write(f"{time()}, {','.join([f'{pos:.2f}' for pos in self.position])}\n")

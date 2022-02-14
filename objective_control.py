@@ -3,22 +3,26 @@ import numpy as np
 import pyvisa as pv
 from logging import getLogger
 from pathlib import Path
+from time import sleep
+from warnings import warn
 _log = getLogger(__name__)
-path = Path(__file__).parent / "devices"
 rm = pv.ResourceManager()
 
 # Serial commands with clear names
 # There are more, but these should be all we need
 commands = { "acceleration" : "ACC",
              "deceleration" : "DEC",
-             "err_read_clear" : "ERR",
+             "read_errors" : "ERR",
              "dead_band" : "DBD",
              "estop" : "EST",
              "set_feedback" : "FBK",
              "set_motor" : "MOT",
+             "status"   : "STA",
              "move_abs" : "MVA",
              "move_rel" : "MVR",
              "position" : "POS",
+             "set_pid" : "PID",
+             "set_resolution" : "REZ",
              "reset" : "RST",
              "stop" : "STP",
              "soft_lower" : "TLN",
@@ -27,109 +31,327 @@ commands = { "acceleration" : "ACC",
              "zero" : "ZRO"
 }
 
+default_config = { "_port"           : 3,       #Serial Port COM#
+                   "_velocity"       : 0.1,     #mm/s
+                   "_acceleration"   : 25.0,    #mm/s^2
+                   "_deceleration"   : 1.0,     #mm/s^2
+                   "_soft_lower"     : -4000.0, #um
+                   "_soft_upper"     : 4000.0,  #um
+                   "_resolution_stp" : 8000.0,  #steps/um
+                   "_resolution_enc" : 0.01,    #um/cnt
+                   "_max_move"       : 100,     #um
+                   "_axis"           : 1        #Axis to use, nominally 1
+}
+
+class ObjValueError(Exception):
+    pass
+
 class Objective():
-    def __init__(self, port : str = "COM3"):
-        self.instr = VisaInterface(port)
-        self.instr.resource.write_termination = '\r'
-        self.instr.resource.read_termination = '\n\r'
-        self.instr.resource.baud_rate = 38600
+    def __init__(self,config_dic:dict[str,any] = default_config,**kwargs) -> None:
+        # Modify config with parameters
+        for key, value in config_dic.items():
+            if key not in default_config.keys():
+                print("Warning, unmatched config option: '%s' in config dictionary." % key)
+                default_config[key] = value
+        for key, value in kwargs.items():
+            if key not in default_config.keys():
+                print("Warning, unmatched config option: '%s' from kwargs." % key)
+                default_config[key] = value
+        for key, value in default_config.items():
+            setattr(self,key,value)
+        self.instr = None
         self.commands = commands
-        self.initialize_objective_params() 
+        self.set_point = None
+
+    def __repr__(self):
+        if self.instr is None:
+            return f"Stage Uninitialized"
+        else:
+            position = self.position
+            set_point = self.set_point
+            status = self.status
+            model = self.instr.model
+            return f"Stage Initialized\n{model}\nSet Position: {set_point:.2f}um\nRead Position: {position:.2f}um\nStatus: {status}"
+
+    def query(self,msg:str) -> str:
+        if self.instr is None:
+            raise RuntimeError("Objective not Initialized")
+        else:
+            #Strip leading # and any whitespace
+            return self.instr.query(f"{self._axis}{msg}")[1:].strip()
+
+    def write(self,msg:str) -> None:
+        if self.instr is None:
+            raise RuntimeError("Objective not Initialized")
+        else:
+            self.instr.write(f"{self._axis}{msg}")
+
+    def read(self) -> str:
+        if self.instr is None:
+            raise RuntimeError("Objective not Initialized")
+        else:
+            #Strip leading # and any whitespace
+            return self.instr.read()[1:].strip()
+        
+    @property
+    def max_move(self) -> float:
+        return self._max_move
+    @max_move.setter
+    def max_move(self, value:float):
+        if value < 0:
+            raise ObjValueError("Max move must be a positive number")
+        self._max_move = value
 
     @property
-    def accel(self):
+    def accel(self) -> float:
         """The accel property."""
-        return self.instr.query(commands['acceleration'])
+        return float(self.query(commands['acceleration']))
     @accel.setter
-    def accel(self, value):
+    def accel(self, value:float) -> float:
         self._accel = value
+        self.write(f"{commands['acceleration']} {value}")
 
     @property
-    def decel(self):
+    def decel(self) -> float:
         """The decel property."""
-        return self.instr.query(commands['deceleration'])
+        return float(self.query(commands['deceleration']))
 
     @decel.setter
-    def decel(self, value):
+    def decel(self, value:float):
         self._decel = value
+        self.write(f"{commands['deceleration']} {value}")
 
     @property
-    def velocity(self):
+    def velocity(self) -> float:
         """The velocity property."""
-        return self.instr.query(commands['velocity'])
+        return float(self.query(commands['velocity']))
     @velocity.setter
-    def velocity(self, value):
+    def velocity(self, value:float):
         self._velocity = value
+        self.write(f"{commands['velocity']} {value}")
 
     @property
-    def dead_band(self):
+    def dead_band(self) -> int:
         """The dead_band property."""
-        return self.instr.query(commands['dead_band'])
+        res = self.query(commands['dead_band']).split(',')
+        return int(res[0]),float(res[1])
+
     @dead_band.setter
-    def dead_band(self, value):
-        self._dead_band = value
+    def dead_band(self, steps:int, time:float):
+        self._dead_band_steps = steps
+        self._dead_band_time = time
+        self.write(f"{commands['dead_band']} {steps},{time}")
 
     @property
-    def feedback(self):
+    def feedback(self) -> bool:
         """The feedback property."""
-        return self.instr.query(commands['set_feedback'])
+        value = int(self.query(commands['set_feedback']))
+        if value == 0:
+            return False
+        elif value == 3:
+            return True
+        else:
+            print("Unknown feedback value.")
+            return None
+
     @feedback.setter
-    def feedback(self, value):
+    def feedback(self, value:bool):
         self._feedback = value
+        if value:
+            value = 3
+        else:
+            value = 0
+        self.write(f"{commands['set_feedback']} {value}")
 
     @property
-    def motor_power(self):
+    def motor_power(self) -> bool:
         """The motor_power property."""
-        return self.instr.query(commands['set_motor'])
+        return bool(self.query(commands['set_motor']))
     @motor_power.setter
-    def motor_power(self, value):
+    def motor_power(self, value:bool):
         self._motor_power = value
+        self.write(f"{commands['set_motor']} {int(value)}")
 
     @property
-    def position(self):
+    def enc_position(self) -> float:
         """The position property."""
-        return self.instr.query(commands['position'])
-    @position.setter
-    def position(self, value):
-        self._position = value
+        return float(self.query(commands['position']).split(',')[0]) * 1000 # convert to um from mm
+    @property
+    def position(self) -> float:
+        """The position property."""
+        return float(self.query(commands['position']).split(',')[1]) * 1000 # convert to um from mm
 
     @property
-    def lower_limit(self):
+    def soft_lower(self) -> float:
         """The lower_limit property."""
-        return self.instr.query(commands['soft_lower'])
-    @lower_limit.setter
-    def lower_limit(self, value):
-        self._lower_limit = value
+        return float(self.query(commands['soft_lower'])) * 1000
+    @soft_lower.setter
+    def soft_lower(self, value:float):
+        if self._soft_upper < value:
+            raise ObjValueError(f"Lower limit must be less than upper limit = {self.upper_limit}.")
+        self._soft_lower = value
+        self.write(f"{commands['soft_lower']} {value/1000}")
 
     @property
-    def upper_limit(self):
+    def soft_upper(self) -> float:
         """The upper_limit property."""
-        return self.instr.query(commands['soft_upper'])
-    @upper_limit.setter
-    def upper_limit(self, value):
-        self._upper_limit = value
+        return float(self.query(commands['soft_upper'])) * 1000
+    @soft_upper.setter
+    def soft_upper(self, value:float):
+        if value < self._soft_lower:
+            raise ObjValueError(f"Upper limit must be greater than lower limit = {self.lower_limit}.")
+        self._soft_upper = value
+        self.write(f"{commands['soft_upper']} {value/1000}")
+        
+    @property
+    def status(self) -> dict[str,bool]:
+        """The status property"""
+        byte =  int(self.query(commands['status']))
+        status_dict = {'error' : bool(byte&128),
+                       'accel'  : bool(byte&64),
+                       'const'  : bool(byte&32),
+                       'decel'  : bool(byte&16),
+                       'idle'   : bool(byte&8),
+                       'prgrm'  : bool(byte&4),
+                       '+lim'   : bool(byte&2),
+                       '-lim'   : bool(byte&1)
+                       }
+        return status_dict
+
+    @property
+    def errors(self) -> list[str]:
+        return self.query(commands['read_errors']).split(',')
+
+    def stop(self):
+        self.write(commands['stop'])
+
+    def estop(self):
+        self.write(commands['estop'])
+
+    def initialize(self):
+        self.instr = VisaInterface(f"COM{self._port}")
+        self.feedback = 1
+        self.set_point = self.position
+
+    def deinitialize(self, maintain_feedback = False):
+        #Disable closed loop feedback
+        if not maintain_feedback:
+            self.feedback = 0
+        self.instr.resource.close()
+        self.instr = None
+        self.set_point = None
+
+    def move_rel(self,distance,monitor=True,monitor_callback=None):
+        position = self.position + distance
+        if np.abs(distance) > self._max_move:
+            raise ObjValueError(f"Change in position {distance} greater than max = {self.max_move}")
+        elif not (self._soft_lower < self.position < self._soft_upper):
+            raise ObjValueError(f"New position {position} outside soft limits [{self._soft_lower},{self._soft_upper}]")
+        self.write(f"{commands['move_rel']} {distance/1000}")
+        self.set_point = position
+        if monitor:
+            self.monitor_move(monitor_callback)
+
+    def move_up(self,distance,monitor=True,monitor_callback=None):
+        if distance < 0:
+            raise ObjValueError("Move up distance must be positive")
+        self.move_rel(-distance,monitor,monitor_callback) #Negative values is going up, absolutely certain, do not change.
+    
+    def move_down(self,distance,monitor=True,monitor_callback=None):
+        if distance < 0:
+            raise ObjValueError("Move up distance must be positive")
+        self.move_rel(distance,monitor,monitor_callback) #Negative values is going up, absolutely certain, do not change.
+
+    def move_abs(self,position,monitor=True,monitor_callback=None):
+        distance = position - self.position
+        if np.abs(distance) > self._max_move:
+            raise ObjValueError(f"Change in position {distance} greater than max = {self.max_move}")
+        elif not (self._soft_lower < self.position < self._soft_upper):
+            raise ObjValueError(f"New position {position} outside soft limits [{self._soft_lower},{self._soft_upper}]")
+        self.write(f"{commands['move_abs']} {position/1000}")
+        self.set_point = position
+        if monitor:
+            self.monitor_move(monitor_callback)
+
+    def monitor_move(self, callback=None):
+        # Setup a default callback, also servers as example
+        def default_callback(status,position,setpoint):
+            if status['idle']:
+                msg = "at position."
+            elif status['accel']:
+                msg = "accelerating."
+            elif status['decel']:
+                msg = "decelerating."
+            elif status['const']:
+                msg = 'at constant speed.'
+            else:
+                msg = 'slipping.'
+            if status['error']:
+                msg += "\n\tError detected, aborting."
+            print(f"At {position:.3f}um, target is {setpoint:.3f}um. Stage is {msg}")
+            return status['error']
+        # Set default callback if none given
+        if callback is None:
+            callback = default_callback
+
+        # Setup first iteration of loop
+        status = self.status
+        set_point = self.set_point
+        while not status['idle']:
+            # Throw in try catch to allow for keyboard interrupts of motion
+            try:
+                # Run the callback and check the response.
+                abort = callback(status,self.position,self.set_point)
+                if abort:
+                    break
+                # Update status for next iteration
+                status = self.status
+            # If keyboard intterupt (CTRL+C) sent, act as if aborting
+            except KeyboardInterrupt:
+                abort = True
+                break
+
+        if abort:
+            # Loop through different levels of stopping.
+            self.stop()
+            if not self.status['idle']:
+                warn("Normal stop didn't work, trying emergency stop!")
+                self.estop()
+                if not self.status['idle']:
+                    warn("~~~~Emergency stop didn't work, pull the plug!!!!!!~~~~")
+        # run callback one more time to ensure we get the final position printed.
+        else:
+            callback(self.status,self.position,self.set_point)
+        pass
+
+    def zero(self):
+        self.write(f"{commands['zero']}")
+
+
+def parse_command(command:str) -> list[str]:
+    return list(map(lambda s: s.strip(),command.split(";")))
+
+def get_id(inst:pv.Resource) -> str:
+    try:
+        inst.write("1VER?")
+        sleep(0.5)
+        identity = inst.read()
+        return identity
+    except pv.VisaIOError as e:
+        _log.error("Couldn't ID requested resource! Check connections and reset.")
+        raise
 
 class VisaInterface():
     def __init__(self, resource_name: str) -> None:
         self.resource = rm.open_resource(resource_name)
+        # Setup the needed terminations for the objective stage.
+        self.resource.write_termination = '\r'
+        self.resource.read_termination = '\n\r'
+        self.resource.baud_rate = 38600
         _model = get_id(self.resource)
+        self.model = _model
         _log.debug("Opened device model: {0}".format(_model))
-
-        config_path = configs[match_model(_model)]
-        config = load_config(config_path)
-
-        self.model = config_path.stem
-        self._log = getLogger("{0}.{1}".format(__name__, self.model))
-        self.commands = config.pop('commands')
-
-        for key,entry in config.items():
-            if isinstance(entry, dict):
-                try:
-                    config[key] = self.query(entry['command'])
-                except pv.VisaIOError:
-                    config[key] = entry['default']
-
-        self.config = config
+        self._log = getLogger("{0}.{1}".format(__name__, _model))
 
     def query(self, command:str) -> str:
         commands = parse_command(command)
@@ -164,89 +386,3 @@ class VisaInterface():
             self._log.error("Encountered Visa Error: \n\t\t{0}\n\tOn Read.".format(e))
             raise e
 
-    def query_bin_data(self, command:str, **kwargs) -> np.ndarray:
-        commands = parse_command(command)
-        for command in commands[:-1]:
-            self._log.debug("wrote {0}".format(command))
-            self.resource.write(command)
-
-        if self.config['data_width'] == 1:
-            dtype = "b" # Signed char, -128 to 127
-        elif self.config['data_width'] == 2:
-            dtype = "h" # Signed short, -32768 to 32767
-        elif self.config['data_width'] == 4:
-            dtype = "i" # Signed int, -2^31 to 2^31
-
-        self._log.debug("wrote {0}".format(commands[-1] + "?"))
-        data = self.resource.query_binary_values(commands[-1]+"?", 
-                                                 datatype=dtype, container=np.array,
-                                                 **kwargs)
-        self._log.debug("Recieved {0} values of data".format(len(data)))
-        return data
-
-
-def parse_command(command:str) -> list[str]:
-    return list(map(lambda s: s.strip(),command.split(";")))
-
-def get_id(inst:pv.Resource) -> str:
-    try:
-        identity = inst.query("*IDN?")
-        return identity
-    except pv.VisaIOError as e:
-        _log.error("Couldn't ID requested resource! Check connections and reset.")
-        raise
-
-def load_config(path: Path) -> dict[str,object]:
-    filename = path.stem
-
-    defaults = {'commands':{}}
-    if filename != "default":
-        default_path = path.parent / "default.json"
-        try:
-            defaults = load_config(default_path)
-            _log.debug("Loaded default values from %s" % default_path.as_posix())
-        except FileNotFoundError:
-            _log.debug("No default file found.")
-            pass
-
-    _log.debug("Loading config named: %s" % filename)
-    with open(path, 'r') as f:
-        try:
-            config = js.load(f)
-        except js.JSONDecodeError:
-            _log.Error("Invalid JSON in %s" % filename)
-            raise
-    if 'commands' in config.keys():
-        defaults['commands'].update(config.pop('commands'))
-    defaults.update(config)
-    return defaults
-
-def get_configs() -> dict[str,Path]:
-    configs = {}
-    _log.debug("Looking for congifs in %s" % path.as_posix())
-    for config_file in path.glob("**/*.json"):
-        model_id = load_config(config_file)['id']
-        _log.debug("Added id: %s" % model_id)
-        configs[model_id] = config_file
-    return configs
-
-configs = get_configs()
-
-def match_model(model: str) -> Path:
-    match_len = 0
-    match_str = ""
-    sm = SequenceMatcher()
-    sm.set_seq1(model)
-    for model_id in configs.keys():
-        sm.set_seq2(model_id)
-        ml = sm.find_longest_match().size
-        if ml > match_len:
-            match_len = ml
-            match_str = model_id
-        else:
-            continue
-    if not match_str:
-        _log.error("No matching device model found.")
-        raise RuntimeError("No matching device model found.")
-    _log.debug("Found best matching model ID: %s" % match_str)
-    return match_str

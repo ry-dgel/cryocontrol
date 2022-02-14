@@ -98,8 +98,10 @@ class ScanView(egg.gui.Window):
                 self.plot_image2.clear()
                 self.remove_object(self.plot_image2)
             except ValueError:
+                print("Value Error when Plotting")
                 pass
             except AttributeError:
+                print("Attribute Error when Plotting")
                 pass
         
         # Create the plot and image view objects.
@@ -132,7 +134,7 @@ class ScanView(egg.gui.Window):
         
     def button_load_scans_clicked(self):
         """
-        Load in scan data using Cavspy, whwich handles processing the data
+        Load in scan data using Cavspy, whwich haindles processing the data
         and converting the units. 
         """                       
         _debug('GUIMap: button_load_scans clicked')

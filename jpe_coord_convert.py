@@ -84,7 +84,7 @@ class JPECoord():
     def check_bounds(self, x:float, y:float, z:float):
         zs = self.zs_from_cart([x,y,z])
         for z in zs:
-            if not (self.zmax > z > self.zmin):
+            if not (self.zmax >= z >= self.zmin):
                 return False
         return True
 

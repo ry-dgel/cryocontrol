@@ -184,12 +184,12 @@ class Scanner():
             except IndexError:
                 raise RuntimeError(msg)
 
-        self._func = function
+        self._func : Callable = function
 
-        self._centers = np.atleast_1d(centers)
-        self._spans = np.atleast_1d(spans)
-        self._steps = np.atleast_1d(steps)
-        self._dtype = output_dtype
+        self._centers : npt.NDArray = np.atleast_1d(centers)
+        self._spans : npt.NDArray = np.atleast_1d(spans)
+        self._steps : npt.NDArray[np.int_] = np.atleast_1d(steps)
+        self._dtype : npt.DTypeLike = output_dtype
         self._snake = snake
         self._log = log
         self.labels = [str(label) for label in labels] if labels else [str(i) for i in range(len(steps))]
@@ -436,14 +436,17 @@ class Scanner():
         self._init_func()
 
         completed = False
-        for I,(index,position) in enumerate(zip(zip(*indices),zip(*positions))):
-            result = self._func(*position)
-            results[index] = result
-            if self._abort_func(I,Imax,index,position,result):
-                return results
-            self._prog_func(I, Imax, index, position, result)
-        else:
-            completed = True
+        try:
+            for I,(index,position) in enumerate(zip(zip(*indices),zip(*positions))):
+                result = self._func(*position)
+                results[index] = result
+                if self._abort_func(I,Imax,index,position,result):
+                    return results
+                self._prog_func(I, Imax, index, position, result)
+            else:
+                completed = True
+        except KeyboardInterrupt:
+            warn("Caught Keyboard Intterup, aborting scan.")
         
         self._finish_func(results, completed)
 
@@ -570,8 +573,6 @@ class Scanner():
                 if odd_tile:
                     pos = np.concatenate((pos,self._positions[ax]))
                     idx = np.concatenate((idx,np.arange(len(self._positions[ax]))))
-                pos = np.repeat(pos,n_repeat)
-                idx = np.repeat(idx,n_repeat)
             else:
                 pos = np.tile(pos,n_tile)
                 idx = np.tile(idx,n_tile)
@@ -600,7 +601,7 @@ def _safe_file_name(filename : Path):
     suffix = ""
     if filename.is_file():
         folder = filename.parent
-        inc = len(list(folder.glob(f"{filename.stem}*")))
+        inc = len(list(folder.glob(f"{filename.stem}*{filename.suffix}")))
         return folder / f"{filename.stem}{inc}{filename.suffix}"
     else:
         return filename

@@ -10,7 +10,7 @@ from scanner import Scanner
 from pathlib import Path
 
 # Set the save directory, and ensure it exists
-SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2021_09_03_pos2_short")
+SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2022-02-10_cfiber_newregion\wl_calib")
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Initial creation of live update plot
@@ -60,21 +60,21 @@ andor = spect.Spectrometer()
 # Set the exposure time
 # TODO: Make sure this is set to what you want it to be!!
 # It's useful to check in andor first
-andor._exp_time = 5
-andor.api.SetExposureTime(andor._exp_time)
+andor.exp_time = 1
+#andor.api.SetExposureTime(andor._exp_time)
 
 # Get the calibrated wavelength axis
 wl = andor.get_wavelengths()
 # Set the min and max wavelength bounds for cropping
-wlmin = 545
-wlmax = 675
+wlmin = 573
+wlmax = 854
 # Set the binning of the spectrometer, play with this in
 # andor to get an idea for what's best. I find 16 is ideal
 # doesn't have to be a power of 2, but ideally should be.
 andor.vertical_bin(16)
 # Which rows of the image to keep
 # If you change the binning, this definitely needs updating.
-rows = [7,8,9]
+rows = [12,13,14]
 # Cooldown the spectrometer and wait for it to reach
 # The target temperature
 # If it gets stuck at the target without continuing
@@ -98,8 +98,8 @@ def init():
     starting_pos['jpe_pos'] = cryo.get_jpe_pzs()
     starting_pos['cavity_pos'] = cryo.get_cavity()
     starting_pos['galvo_pos'] = cryo.get_galvo()
-    print(starting_pos['galvo_pos'])
-
+    print(f"{starting_pos['galvo_pos'] = }")
+    print(f"{starting_pos['jpe_pos'] = }")
 # Function to run at every point in scan
 def jpe_z_spectra(jpe_z):
     # If we go to an invalid z, just return 0 and skip the point
@@ -133,13 +133,12 @@ def finish(results, completed):
         print("Scan succesful, I'll turn off the spectrometer and close devices")
         cryo.close_fpga()
         andor.stop_cooling()
-        andor.waitfor_temp()
         andor.close()
     
 # Scan Parameters
 centers = [-3]
 spans = [-6] #negative span means start high and go low, in this case 0 -> -6
-steps = [1300]
+steps = [300]
 labels = ["JPEZ"]
 output_type = object # 2D images from spectrometer are objects
 
@@ -153,7 +152,7 @@ cavity_scan_3D = Scanner(jpe_z_spectra,
 results = cavity_scan_3D.run()
 # Save the scan, object type requires npz so set that
 # save cropped wavelengths by putting it in header.
-cavity_scan_3D.save_results(SAVE_DIR/'post_finesse_fwd_scan', as_npz=True, header=str(wlc))
+cavity_scan_3D.save_results(SAVE_DIR/'bad_mode_fwd_scan', as_npz=True, header=str(wlc))
 
 # Can uncomment the following to run the scan in reverse as well
 # Remove the finish function from the above cavity_scan_3D definition
@@ -164,4 +163,4 @@ cavity_scan_3D_rev = Scanner(jpe_z_spectra,
                              labels=labels,
                              init = init, progress = progress, finish = finish)
 results = cavity_scan_3D_rev.run()
-cavity_scan_3D_rev.save_results(SAVE_DIR/'post_finesse_rev_scan', as_npz=True, header=str(wlc))
+cavity_scan_3D_rev.save_results(SAVE_DIR/'bad_mode_rev_scan', as_npz=True, header=str(wlc))

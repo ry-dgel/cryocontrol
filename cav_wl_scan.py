@@ -11,7 +11,7 @@ from scanner import Scanner
 from pathlib import Path
 
 # Set the save directory, and ensure it exists
-SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2021_09_03_pos2_short")
+SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2022_01_26_more_scan_tests")
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Initial creation of live update plot
@@ -57,8 +57,7 @@ andor = spect.Spectrometer()
 # Set the exposure time
 # TODO: Make sure this is set to what you want it to be!!
 # It's useful to check in andor first
-andor._exp_time = 70
-andor.api.SetExposureTime(andor._exp_time)
+andor.exp_time = 15
 
 # Get the calibrated wavelength axis
 wl = andor.get_wavelengths()
@@ -71,7 +70,7 @@ wlmax = 675
 andor.vertical_bin(16)
 # Which rows of the image to keep
 # If you change the binning, this definitely needs updating.
-rows = [7,8,9]
+rows = [12,13,14]
 # Cooldown the spectrometer and wait for it to reach
 # The target temperature
 # If it gets stuck at the target without continuing
@@ -131,7 +130,6 @@ def finish(results, completed):
         print("Scan succesful, I'll turn off the spectrometer and close devices")
         cryo.close_fpga()
         andor.stop_cooling()
-        andor.waitfor_temp()
         andor.close()
     
 # Scan Parameters
@@ -151,7 +149,7 @@ cavity_scan_3D = Scanner(cav_z_spectra,
 results = cavity_scan_3D.run()
 # Save the scan, object type requires npz so set that
 # save cropped wavelengths by putting it in header.
-cavity_scan_3D.save_results(SAVE_DIR/'blob_cav_scan_all_filters', as_npz=True, header=str(wlc))
+cavity_scan_3D.save_results(SAVE_DIR/'cav_scan_wide_LP', as_npz=True, header=str(wlc))
 
 # Can uncomment the following to run the scan in reverse as well
 # Remove the finish function from the above cavity_scan_3D definition
@@ -166,3 +164,4 @@ cavity_scan_3D_rev = Scanner(cav_z_spectra,
 results = cavity_scan_3D_rev.run()
 cavity_scan_3D_rev.save_results(SAVE_DIR/'rev_cav_scan_SP532Cut', as_npz=True, header=str(wlc))
 """
+

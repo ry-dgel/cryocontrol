@@ -21,6 +21,9 @@ pz_config = {"vmax" : 0,
 pz_conv = JPECoord(pz_config['R'], pz_config['h'],
                    pz_config['vmin'], pz_config['vmax'])
 
+class FPGAValueError(Exception):
+    pass
+
 class CryoFPGA(fb.NiFPGA):
     _pulse_pattern_fifo = 'Host to Target DMA'
     _counts_fifo = 'Target to Host DMA'
@@ -29,13 +32,13 @@ class CryoFPGA(fb.NiFPGA):
     _cavity_z = 2
     _green_aom = 3
     _red_aom = 4
-    _jpe_uno = 5
-    _jpe_due = 6
+    _jpe_uno = 5 
+    _jpe_due = 6 
     _jpe_tre = 7
     _photodiode_in = 1
     _dio_array = [0 for n in range(pg_config['user_dio_chns'])]
     _max_waits = 2
-    _max_wait_multiple = 30
+    _max_wait_multiple = 60
 
     def __init__(self) -> None:
         super().__init__()
@@ -66,7 +69,7 @@ class CryoFPGA(fb.NiFPGA):
                     
         #Fixed the mistake had a None issue because it was still taking the x,y,z instead of updated valued
         if not pz_conv.check_bounds(volts[0],volts[1],volts[2]): 
-            raise ValueError(f"New JPE Position is outside bounds.")
+            raise FPGAValueError(f"New JPE Position is outside bounds.")
 
         z_volts = pz_conv.zs_from_cart(volts)
         self.set_AO_volts([self._jpe_uno, self._jpe_due, self._jpe_tre], z_volts)
@@ -116,7 +119,7 @@ class CryoFPGA(fb.NiFPGA):
 
     def set_dio_array(self, dio_array:list[int], write:bool=True) -> None:
         if len(dio_array) != len(self._dio_array):
-            raise ValueError("Invalid length of dio_array")
+            raise FPGAValueError("Invalid length of dio_array")
         if write:
             self.write_values_to_fpga()
     def get_dio_array(self) -> list[int]:

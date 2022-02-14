@@ -1,23 +1,15 @@
-import fpga_cryo as fc # Code for controlling cryo fpga stuff
-import vipyr as vp # Library for easy oscilloscope interfacing github.com/ry-dgel/vipyr
-
 import numpy as np
-import pandas as pd
+import jpe_steppers as jse
+import fpga_cryo as fc
+import vipyr as vp
+from scanner import Scanner
 import matplotlib.pyplot as plt
 
-from time import sleep
-
-from functools import partial
-from scanner import Scanner
 from pathlib import Path
 
 # Set the save directory, and ensure it exists
-SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2022_01_26_more_scan_tests")
+SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2022_01_13_stiched_test")
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
-
-# Setup FPGA
-cryo = fc.CryoFPGA()
-starting_pos = {} # For holding onto the data of where we start
 
 # Setup scope
 # Some manual setup is also required on the scope.
@@ -25,14 +17,11 @@ starting_pos = {} # For holding onto the data of where we start
 # on the external sync signal provided by the signal generator.
 # Also, make sure that there's a single period of the signal generator's sweep.
 # With the beginning of the sweep being at the left edge of the screen.
-#scope_name = "USB0::0x0699::0x03AF::C011023::INSTR" # This is the visa interface string name, shouldn't change for the same device
-scope_name = "USB0::0x0699::0x03B5::C010585::INSTR"
+scope_name = "USB0::0x0699::0x03B5::C010585::INSTR" # This is the visa interface string name, shouldn't change for the same device
 scope = vp.VisaScope(vp.VisaInterface(scope_name)) # Open up a vipyr Visa Scope using the above name
 scope.trigger.single = True # Setup the scope to single trigger mode, i.e. stop after a single acquisition
 scope.set_property("MEASU:IMMED:TYP", "MAXI") # Setup the type and source of oscilloscope measurement
 scope.set_property("MEASU:IMMED:SOURCE", "CH2")
-#scope.set_property("MEASU:IMMED:TYP2", "MAXI")
-#scope.set_property("MEASU:IMMED:SOURCE2", "CH1")
 
 # Setup Sig Gen
 # Some manual setup is also requred on the signal generator
@@ -43,12 +32,32 @@ sig_name = 'USB0::0x0400::0x09C4::DG1G150300137::INSTR'
 sig = vp.resource_manager.open_resource(sig_name)
 sig.query_delay = 0.1 # Seems like the RIGOL signal generator needs this delay
 
-# Setup the scan, centers and spans are in volts
-centers = [0,0]
-spans = [35,35]
-steps = [40,40]
-labels = ["JPEY","JPEX"] # We're scanning in y slowly, and x quickly
-output_type = float # At each point we get an array of two numbers
+cryo = fc.CryoFPGA()
+stepper = jse.JPEStepper()
+stepper.initialize()
+# Setting very strict limits based on the current position,
+# This should be adjusted for future runs.
+
+initial_pz = cryo.get_jpe_pzs()
+initial_st = stepper.position
+stepper.lim = [[initial_st[0]-50,initial_st[0]+50],
+               [initial_st[1]-50,initial_st[1]+50],
+               [initial_st[2]-1,initial_st[2]]]
+
+centers = [initial_st[1],initial_st[0],0,0]
+#spans = [0.8,0.8,0.606,0.606]
+#steps = [2,2,3,3]
+spans = [100,100,0.606,0.606]
+steps = [77,77,3,3]
+
+stepper.rel_lim = [max(spans[0]/2,stepper.res[0]),
+                   max(spans[1]/2,stepper.res[1]),
+                   0.0]
+
+labels = ["JPESTY","JPESTX","JPEPZY","JPEPZX"] # We're scanning in y slowly, and x quickly
+output_type = float # At each point we get a number
+
+starting_pos = {"piezo" : initial_pz, "stepper"  :initial_st}
 
 # Setting up the function to be run at each point
 # This first function tells the scope to start acquiring
@@ -61,48 +70,46 @@ def scope_get_max():
     return scope.get_property("MEASU:IMMED:VAL")
 
 # This is the function we run at each setting
-def jpe_xy_trans_scope(jpe_y,jpe_x):
+def jpe_st_pz_xy_trans_scope(jpe_sty,jpe_stx,jpe_pzy,jpe_pzx):
     try:
+        # Setting the stepper position, here monitor makes it wait for the
+        # move to finish before continuing, and also prints out the status of
+        # the motion,then we save the position to the file.
+        stepper.set_position(jpe_stx,jpe_sty,monitor=True,write_pos=True)
         # If the x and y position are invalid, this function
         # raises a Value Error.
         # setting the z value to None makes it keep it's current setting
         # saying write=True makes the fpga immediately update the value.
-        cryo.set_jpe_pzs(jpe_x,jpe_y,None, write=True)
-    except fc.FPGAValueError:
+        cryo.set_jpe_pzs(jpe_pzx,jpe_pzy,None, write=True)
+    except ValueError as e:
         # In this case, we know it's outside the piezo scan range
         # so just return 0 instead of crashing
+        print(e)
         return 0
     # Otherwise call the above function to get the max at this point.
     return scope_get_max()
 
-# Setup the scanner object to run the above function at every point,
-# the [1] sets the second axis, in this case x to be snaked, alternating
-# the scan direction for every y value.
-cavity_trans_scan = Scanner(jpe_xy_trans_scope,
-                         centers, spans, steps, [1], [], output_type,
-                         labels=labels)
-
-# To live plot, we need a buffer to hold all the data separate from the scan
-# object
-buffer = np.zeros(steps[::-1])
-# We then setup the plot axes and object
-Y,X = np.meshgrid(*cavity_trans_scan.positions)
-fig,axes = plt.subplots(1,2)
-# By naming this object, we can directly update the data later.
-imobjf = axes[0].pcolormesh(X,Y,np.repeat(buffer[::2,:],2,axis=0),shading='auto')
-imobjr = axes[1].pcolormesh(X,Y,np.repeat(buffer[1::2,:],2,axis=0),shading='auto')
+stitch_scan = Scanner(jpe_st_pz_xy_trans_scope,
+                     centers, spans, steps, [1,3],[],output_type,
+                     labels=labels)
+buffer = np.zeros((steps[1]*steps[3],steps[0]*steps[2]))
+xs = np.linspace(initial_st[1]-spans[1]/2,initial_st[1]+spans[1]/2,steps[1]*steps[3])
+ys = np.linspace(initial_st[0]-spans[0]/2,initial_st[0]+spans[0]/2,steps[0]*steps[2])
+X,Y = np.meshgrid(xs,ys)
+fig,ax = plt.subplots()
+imobj = ax.pcolormesh(Y,X,buffer,shading='auto')
 plt.show(block=False)
+
 # Function to be run once at the start of the scan
 def init():
     # Show the plot
     # Get the FPGAs current position for multiple objects.
-    starting_pos['jpe_pos'] = cryo.get_jpe_pzs()
-    starting_pos['cavity_pos'] = cryo.get_cavity()
-    starting_pos['galvo_pos'] = cryo.get_galvo()
+    starting_pos['galvo'] = cryo.get_galvo()
     # Print some useful info
     print("Initial FPGA Positions:")
-    print(f"\tJPE: {starting_pos['jpe_pos']}")
-    print(f"\tGalvo: {starting_pos['galvo_pos']}")
+    print(f"\tJPE Piezos: {starting_pos['piezo']}")
+    print(f"\tJPE Stepper: {starting_pos['stepper']}")
+    print(f"\tGalvo: {starting_pos['galvo']}")
     # Turn on the signal generator
     sig.write("output on")
     # Pause for a bit, both for the signal generator to turn on
@@ -113,17 +120,18 @@ def init():
 def progress(i,imax,index,pos,results):
     # Print out some useful info at every point to track progress
     print(f"{i+1}/{imax}, {pos} -> {results}")
-    print(f"\tCryo pos: {cryo.get_jpe_pzs()}")
+    print(f"\tPiezo pos: {cryo.get_jpe_pzs()}")
+    print(f"\tStepper pos: {stepper.position}")
     # Save new results to buffer array for plotting
-    buffer[index[::-1]] = results
-    # Lets only plot every line by only running this every (# of steps in X) points.
-    if not (i+1)%steps[1]:
+    print(index)
+    buffer[index[1]*steps[3] + index[3], 
+           index[0]*steps[2] + index[2]] = results
+    # Lets only plot every pz scan by only running this every (# of steps in pz) points.
+    if not (i+1)%(steps[2]*steps[3]):
         # Update the plot object directly, it takes a 1D array, which is what ravel gives.
-        imobjf.set_array(np.repeat(buffer[::2,:],2,axis=0).ravel())
-        imobjr.set_array(np.repeat(buffer[1::2,:],2,axis=0).ravel())
+        imobj.set_array(buffer.ravel())
         # Update colorscale if needed
-        imobjf.autoscale()
-        imobjr.autoscale()
+        imobj.autoscale()
         # Force rendering of the plot
         fig.canvas.draw_idle()
         fig.canvas.flush_events()
@@ -131,10 +139,12 @@ def progress(i,imax,index,pos,results):
 # Function to be run after the entire scan
 def finish(results, completed):
     # Reset the jpe position to what it was at the start
-    cryo.set_jpe_pzs(*starting_pos['jpe_pos'], write=True)
+    cryo.set_jpe_pzs(*starting_pos['piezo'], write=True)
+    stepper.set_position(*starting_pos['stepper'],monitor=True,write_pos=True)
     # Turn off the signal generator
     sig.write("output off")
-    plt.colorbar(imobjr,ax=axes[1])
+    plt.pause(0.5)
+    sig.write("output off")
     # Check if the scan was completed, if so just close objects
     # However I haven't implemented closing visa objects.
     if not completed:
@@ -142,22 +152,16 @@ def finish(results, completed):
     else:
         print("Scan succesful, I'll close devices")
         cryo.close_fpga()
+        stepper.deinitialize()
 
 # Tell the scanner object to use these functions.
-cavity_trans_scan._init_func = init
-cavity_trans_scan._prog_func = progress
-cavity_trans_scan._finish_func = finish
+stitch_scan._init_func = init
+stitch_scan._prog_func = progress
+stitch_scan._finish_func = finish
 # Run the scan
-thread = cavity_trans_scan.run()
+stitch_scan.run()
 # Once done, save the results as a csv, with a header.
-cavity_trans_scan.save_results(SAVE_DIR/'trans_scan_only_pz2.csv', as_npz=False, header=f"type: trans\ncenters: {centers}\nspans: {spans}\nsteps: {steps}")
-cavity_trans_scan.save_results(SAVE_DIR/'trans_scan_only_pz2.npz', as_npz=True, header=f"type: trans\ncenters: {centers}\nspans: {spans}\nsteps: {steps}")
+stitch_scan.save_results(SAVE_DIR/'trans_scan_big_no_bugs.csv', as_npz=False, header=f"type: trans\ncenters: {centers}\nspans: {spans}\nsteps: {steps}")
+stitch_scan.save_results(SAVE_DIR/'trans_scan_big_no_bugs.npz', as_npz=True, header=f"type: trans\ncenters: {centers}\nspans: {spans}\nsteps: {steps}")
 
-"""
-cavity_trans_scan = Scanner(jpe_xy_trans_scope,
-                         centers, spans, steps, [1], [], output_type,
-                         labels=labels,
-                         init = init, progress = progress, finish=finish)
-results = cavity_trans_scan.run()
-cavity_trans_scan.save_results(SAVE_DIR/'trans_scan.csv', as_npz=False, header=f"type: trans\ncenters: {centers}\nspans: {spans}\nsteps: {steps}")
-"""
+

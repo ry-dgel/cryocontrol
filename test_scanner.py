@@ -4,7 +4,7 @@ from scanner import Scanner
 from time import sleep
 
 centers = [0,0]
-spans = [2*np.pi,2*np.pi]
+spans = [-2*np.pi,-2*np.pi]
 steps = [20,20]
 snake = [1]
 labels=['x','y']

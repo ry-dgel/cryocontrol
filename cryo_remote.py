@@ -5,7 +5,7 @@ class CryoComm:
     "Class to provide python communication with a Cryostation"
 
 
-    def __init__(self, ip='192.168.1.109', port=7773):
+    def __init__(self, ip='192.168.1.105', port=7773):
         "CryoComm - Constructor"
 
         self.ip = ip
