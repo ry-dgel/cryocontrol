@@ -36,7 +36,10 @@ def set_save_dir(sender,chosen_dir,user_data):
 def toggle_spectrometer(sender,value,user_data):
     if value:
         # Setup Spectrometer
-        with dpg.window(modal=True, tag='sp_warning'):
+        win_size = dpg.get_item_rect_size("main_window")
+        with dpg.window(modal=True, tag='sp_warning',autosize=True):
+            popup_size = dpg.get_item_rect_size("sp_warning")
+            dpg.set_item_pos('sp_warning',  [int((win_size[0]/2 - popup_size[0]/2)), int((win_size[1]/2 - popup_size[1]/2))])
             dpg.add_text("Please wait for spectrometer to connect.",tag="sp_warn")
             dpg.add_loading_indicator(tag='sp_load')
         try:
@@ -120,8 +123,11 @@ def _get_acq():
     return spectrum
 
 def cont_scan_callback(i,time,spectrum):
-    fit_scan(spectrum)
-    data['spectrum'] = spectrum
+    signal = np.copy(spectrum)
+    signal = (signal-min(signal))/np.max(signal)
+    signal /= np.max(signal)
+    fit_scan(signal)
+    data['spectrum'] = signal
     return dpg.get_value("continuous")
 
 def cont_scan(sender,value,user_data):
@@ -185,7 +191,7 @@ def load_ref_callback(sender,chosen_dir,user_data):
     # Load in the data
     data = np.genfromtxt(file_directory,delimiter=',',names=True)
     # Pass off to process_reference
-    process_reference(data['Wavelengths'],data['Counts'])
+    process_reference(data['Wavelength'],data['Intensity'])
 
 def process_reference(wl,spectrum):
     # Set the reference data

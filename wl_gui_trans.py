@@ -32,7 +32,10 @@ def set_save_dir(sender,chosen_dir,user_data):
 def toggle_spectrometer(sender,value,user_data):
     if value:
         # Setup Spectrometer
-        with dpg.window(modal=True, tag='sp_warning'):
+        win_size = dpg.get_item_rect_size("main_window")
+        with dpg.window(modal=True, tag='sp_warning',autosize=True):
+            popup_size = dpg.get_item_rect_size("sp_warning")
+            dpg.set_item_pos('sp_warning',  [int((win_size[0]/2 - popup_size[0]/2)), int((win_size[1]/2 - popup_size[1]/2))])
             dpg.add_text("Please wait for spectrometer to connect.",tag="sp_warn")
             dpg.add_loading_indicator(tag='sp_load')
         try:

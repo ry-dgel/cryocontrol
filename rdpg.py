@@ -168,5 +168,6 @@ def initialize_dpg(title:str = "Unamed DPG App"):
 def start_dpg():
     dpg.setup_dearpygui()
     dpg.show_viewport()
+    dpg.maximize_viewport()
     dpg.start_dearpygui()
     dpg.destroy_context()
