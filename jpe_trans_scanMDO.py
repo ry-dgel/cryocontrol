@@ -12,7 +12,7 @@ from scanner import Scanner
 from pathlib import Path
 
 # Set the save directory, and ensure it exists
-SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2022-02-10_cfiber_newregion\trans_scan")
+SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2022-03-07_post_clean_bare_finesse\trans_scan")
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Setup FPGA
@@ -43,7 +43,7 @@ sig.query_delay = 0.1 # Seems like the RIGOL signal generator needs this delay
 # Setup the scan, centers and spans are in volts
 centers = [0,0]
 spans = [40,40]
-steps = [50,50]
+steps = [120,120]
 labels = ["JPEY","JPEX"] # We're scanning in y slowly, and x quickly
 output_type = float # At each point we get an array of two numbers
 
@@ -152,8 +152,8 @@ cavity_trans_scan._finish_func = finish
 # Run the scan
 thread = cavity_trans_scan.run()
 # Once done, save the results as a csv, with a header.
-cavity_trans_scan.save_results(SAVE_DIR/'trans_scan.csv', as_npz=False, header=f"type: trans\ncenters: {centers}\nspans: {spans}\nsteps: {steps}")
-cavity_trans_scan.save_results(SAVE_DIR/'trans_scan.npz', as_npz=True, header=f"type: trans\ncenters: {centers}\nspans: {spans}\nsteps: {steps}")
+cavity_trans_scan.save_results(SAVE_DIR/'trans_scan_finer.csv', as_npz=False, header=f"type: trans\ncenters: {centers}\nspans: {spans}\nsteps: {steps}")
+cavity_trans_scan.save_results(SAVE_DIR/'trans_scan_finer.npz', as_npz=True, header=f"type: trans\ncenters: {centers}\nspans: {spans}\nsteps: {steps}")
 
 """
 cavity_trans_scan = Scanner(jpe_xy_trans_scope,

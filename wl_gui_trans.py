@@ -17,7 +17,7 @@ data = {'times'    : [],
         'lengths'  : [],
         'errors' : [],
         'spectrum' : [],
-        'wavelength' : [],
+        'wavelength' : np.array([]),
         'first_peak' : 0,
         }
 
@@ -42,7 +42,7 @@ def toggle_spectrometer(sender,value,user_data):
             devices['spect'] = Spectrometer()
         except Exception as err:
             print("Failed to open connection to spectrometer.")
-        dpg.set_value("sp_warn", "Please wait for spectrometer to cooldown")
+        dpg.set_value("sp_warn", "Please wait for spectrometer to cool down.")
         dpg.set_value("Spectrometer/Status", "Cooling")
         with dpg.group(horizontal=True,parent="sp_warning"):
             dpg.add_input_float(label="Temperature",tag="spec_temp",step=0,readonly=True)
@@ -153,13 +153,17 @@ def single_scan(*args):
     for item in ["single_scan","load_scan","continuous"]:
         dpg.enable_item(item)
 
-def fit_scan():
+def fit_scan(write=True):
     # Do the fit
-    peaks = find_peaks(data["spectrum"], 
+    minwl = wl_tree["Fitting/Min Wavelength"]
+    maxwl = wl_tree["Fitting/Max Wavelength"]
+    min_index = np.argmax(data['wavelength'] >= minwl)
+    peaks = find_peaks(data["spectrum"][np.logical_and(data['wavelength']<=maxwl,
+                                                       data['wavelength']>=minwl)],
                        prominence=wl_tree["Fitting/Prominence"],
                        distance=wl_tree["Fitting/Distance (px)"],
                        wlen=wl_tree["Fitting/Window Length (px)"])
-    peaks_idx = peaks[0]
+    peaks_idx = peaks[0] + min_index
     if peaks_idx == []:
         peaks_idx = [0]
     data['first_peak'] = peaks_idx[0]
@@ -169,9 +173,10 @@ def fit_scan():
     lengths = c/(2*fsrs)
 
     length = cs.uncert.from_floats(lengths * 1E6)  # um
-    data["errors"].append(length.u)
-    data["lengths"].append(length.x)
-    data['times'].append(datetime.now().timestamp())
+    if write:
+        data["errors"].append(length.u)
+        data["lengths"].append(length.x)
+        data['times'].append(datetime.now().timestamp())
     # Update Plot
     lower_d = data["wavelength"][int(data['first_peak']-wl_tree["Fitting/Distance (px)"])]
     upper_d = data["wavelength"][int(data['first_peak']+wl_tree["Fitting/Distance (px)"])]
@@ -184,8 +189,9 @@ def fit_scan():
     dpg.show_item("spect_peaks")
     dpg.set_value("spect_peaks", [list(peak_wl),list(data["spectrum"][peaks_idx])])
     dpg.set_value("spect_sig", [list(data["wavelength"]), list(data['spectrum'])])
-    dpg.set_value("length_e", [data['times'],data['lengths'],data['errors'],data['errors']])
-    dpg.set_value("length", [data['times'],data['lengths']])
+    if write:
+        dpg.set_value("length_e", [data['times'],data['lengths'],data['errors'],data['errors']])
+        dpg.set_value("length", [data['times'],data['lengths']])
 
 def set_fitter(*args):
     wl_tree.save()
@@ -201,11 +207,14 @@ def set_fitter(*args):
 def refit(*args):
     set_fitter()
     if len(data['spectrum']) != 0:
-        fit_scan()
+        fit_scan(write=False)
 
 def clear_data(*args):
     for key in data.keys():
-        data[key] = []
+        if key == 'wavelength':
+            data[key] = np.array([])
+        else:
+            data[key] = []
     #Clear Plots
     dpg.set_value("spect_sig",[[0],[0]])
     dpg.set_value("length",[[0],[0]])
@@ -227,6 +236,43 @@ def set_prominence(sender,value,data):
     elif sender == "Fitting/Prominence":
         dpg.set_value("prominence_line",dpg.get_value(sender))
     set_fitter()
+
+def set_minmax(sender,value,data):
+    if sender == "max_line":
+        value = dpg.get_value(sender)
+        maxval = dpg.get_item_configuration("Fitting/Max Wavelength")['max_value']
+        minval = dpg.get_value("min_line")+1
+        if value > maxval:
+            dpg.set_value("max_line",maxval)
+            value = maxval
+        if value < minval:
+            dpg.set_value("max_line",minval)
+            value = minval
+        dpg.set_value("Fitting/Max Wavelength", value)
+    if sender == "min_line":
+        value = dpg.get_value(sender)
+        minval = dpg.get_item_configuration("Fitting/Min Wavelength")['min_value']
+        maxval = dpg.get_value("max_line")-1
+        if value > maxval:
+            dpg.set_value("min_line",maxval)
+            value = maxval
+        if value < minval:
+            dpg.set_value("min_line",minval)
+            value = minval
+        dpg.set_value("Fitting/Min Wavelength", value)
+    elif sender == "Fitting/Min Wavelength":
+        maxval = dpg.get_value("Fitting/Max Wavelength")-1
+        if value > maxval:
+            value = maxval
+        dpg.set_value("Fitting/Min Wavelength",value)
+        dpg.set_value("min_line",value)
+    elif sender == "Fitting/Max Wavelength":
+        minval = dpg.get_value("Fitting/Min Wavelength")+1
+        if value < minval:
+            value = minval
+        dpg.set_value("Fitting/Max Wavelength",value)
+        dpg.set_value("max_line",value)
+    refit()
 
 rdpg.initialize_dpg("Transmitted Whitelight Interferometer")
 
@@ -266,6 +312,10 @@ with dpg.window(label='T Whitelight Length', tag='main_window'):
 
                         wl_tree.add("Fitting/Prominence", 0.1,drag=True,item_kwargs={'min_value':0.0,'speed':0.01,'max_value':1.0,'clamped':True,'format':"%.2f"},
                                     callback=set_prominence)
+                        wl_tree.add("Fitting/Min Wavelength", 600,drag=True,item_kwargs={'min_value':0.0,'speed':1,'max_value':1600,'clamped':True},
+                                    callback=set_minmax)
+                        wl_tree.add("Fitting/Max Wavelength", 650,drag=True,item_kwargs={'min_value':0.0,'speed':1,'max_value':1600,'clamped':True},
+                                    callback=set_minmax)
                         wl_tree.add("Fitting/Distance (px)", 100,item_kwargs={'step':1},
                                     callback=set_fitter)
                         wl_tree.add("Fitting/Window Length (px)", 50, item_kwargs={'step':1},
@@ -286,6 +336,10 @@ with dpg.window(label='T Whitelight Length', tag='main_window'):
                                 dpg.add_line_series([0],[0],parent="spect_y",tag="spect_sig", label="Signal Spectrum")
                                 dpg.add_drag_line(default_value=wl_tree["Fitting/Prominence"],show=True,callback=set_prominence,vertical=False,
                                                      parent='spectra_plot', tag="prominence_line",label="Prominence")
+                                dpg.add_drag_line(default_value=wl_tree["Fitting/Min Wavelength"],show=True,callback=set_minmax,vertical=True,
+                                                     parent='spectra_plot', tag="min_line",label="Wavelength Min")
+                                dpg.add_drag_line(default_value=wl_tree["Fitting/Max Wavelength"],show=True,callback=set_minmax,vertical=True,
+                                                     parent='spectra_plot', tag="max_line",label="Wavelength Max")
                                 dpg.add_stem_series([0],[0],parent='spect_y',tag="spect_peaks",label="Peaks",show=False)
                             with dpg.plot(label="Length", tag="length_plot",
                                         width=-0,height=-0, anti_aliased=True,
@@ -306,6 +360,7 @@ with dpg.file_dialog(label="Load Spectrum",
     dpg.add_file_extension(".*")
     dpg.add_file_extension("", color=(150, 255, 150, 255))
     dpg.add_file_extension(".csv", color=(0, 255, 0, 255), custom_text="[CSV]")
-
+dpg.set_primary_window('main_window',True)
+dpg.show_item_registry()
 rdpg.start_dpg()
         

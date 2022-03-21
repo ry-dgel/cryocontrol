@@ -31058,3 +31058,981 @@
 	Discrepency found, overwriting user_set_position with current position.
 2022-02-10 19:11:04,397 - WARNING - stepper:
 	Discrepency found, overwriting user_set_position with current position.
+2022-03-07 14:01:42,014 - ERROR - stepper:
+	z rel position invalid. Change 99.99999999803913 larger than relative limit 1.0
+2022-03-07 14:02:04,026 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3613.1372549 ].
+2022-03-07 14:02:07,939 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3613.1372549 ].
+2022-03-07 14:02:09,687 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3663.1372549 ].
+2022-03-07 14:02:13,634 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3663.1372549 ].
+2022-03-07 14:56:59,150 - ERROR - stepper:
+	z abs position invalid. Position -3713.1372549 outside range [-3700, -3562]
+2022-03-07 14:57:07,084 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3713.1372549 ].
+2022-03-07 14:57:10,662 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3713.1372549 ].
+2022-03-07 14:57:11,283 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3763.1372549 ].
+2022-03-07 14:57:15,193 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3763.1372549 ].
+2022-03-07 14:57:15,778 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3813.1372549 ].
+2022-03-07 14:57:19,554 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3813.1372549 ].
+2022-03-07 14:57:20,174 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3863.1372549 ].
+2022-03-07 14:57:24,095 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3863.1372549 ].
+2022-03-07 14:57:24,824 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3913.1372549 ].
+2022-03-07 14:57:28,745 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3913.1372549 ].
+2022-03-07 14:57:29,693 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3963.1372549 ].
+2022-03-07 14:57:33,481 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3963.1372549 ].
+2022-03-07 16:56:13,440 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3953.1372549 ].
+2022-03-07 16:56:14,648 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3953.1372549 ].
+2022-03-07 16:56:16,034 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3943.1372549 ].
+2022-03-07 16:56:17,279 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3943.1372549 ].
+2022-03-07 16:56:17,935 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3933.1372549 ].
+2022-03-07 16:56:19,107 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3933.1372549 ].
+2022-03-07 16:56:19,764 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3923.1372549 ].
+2022-03-07 16:56:20,936 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3923.1372549 ].
+2022-03-07 16:56:21,520 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3913.1372549 ].
+2022-03-07 16:56:22,742 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3913.1372549 ].
+2022-03-07 16:56:23,399 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3903.1372549 ].
+2022-03-07 16:56:24,585 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3903.1372549 ].
+2022-03-07 16:56:25,242 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3893.1372549 ].
+2022-03-07 16:56:26,624 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3893.1372549 ].
+2022-03-07 16:56:27,282 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3883.1372549 ].
+2022-03-07 16:56:28,541 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3883.1372549 ].
+2022-03-07 16:56:29,453 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3873.1372549 ].
+2022-03-07 16:56:30,711 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3873.1372549 ].
+2022-03-07 16:56:31,405 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3863.1372549 ].
+2022-03-07 16:56:32,826 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3863.1372549 ].
+2022-03-07 16:56:33,558 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3853.1372549 ].
+2022-03-07 16:56:34,974 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3853.1372549 ].
+2022-03-07 16:56:35,704 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3843.1372549 ].
+2022-03-07 16:56:36,890 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3843.1372549 ].
+2022-03-07 16:56:37,728 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3833.1372549 ].
+2022-03-07 16:56:39,025 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3833.1372549 ].
+2022-03-07 16:56:39,936 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3823.1372549 ].
+2022-03-07 16:56:41,195 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3823.1372549 ].
+2022-03-07 16:56:41,852 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3813.1372549 ].
+2022-03-07 16:56:43,024 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3813.1372549 ].
+2022-03-07 16:56:43,717 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3803.1372549 ].
+2022-03-07 16:56:45,135 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3803.1372549 ].
+2022-03-07 16:56:47,684 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3793.1372549 ].
+2022-03-07 16:56:48,856 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3793.1372549 ].
+2022-03-07 16:56:49,877 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3783.1372549 ].
+2022-03-07 16:56:51,380 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3783.1372549 ].
+2022-03-07 16:56:52,037 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3773.1372549 ].
+2022-03-07 16:56:53,356 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3773.1372549 ].
+2022-03-07 16:56:54,231 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3763.1372549 ].
+2022-03-07 16:56:55,440 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3763.1372549 ].
+2022-03-07 16:56:56,533 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3753.1372549 ].
+2022-03-07 16:56:57,866 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3753.1372549 ].
+2022-03-07 16:56:58,595 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3743.1372549 ].
+2022-03-07 16:56:59,791 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3743.1372549 ].
+2022-03-07 16:57:03,214 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3733.1372549 ].
+2022-03-07 16:57:04,371 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3733.1372549 ].
+2022-03-07 16:57:10,923 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3723.1372549 ].
+2022-03-07 16:57:12,363 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3723.1372549 ].
+2022-03-07 16:57:13,785 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3713.1372549 ].
+2022-03-07 16:57:15,191 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3713.1372549 ].
+2022-03-07 16:57:16,575 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3703.1372549 ].
+2022-03-07 16:57:17,734 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3703.1372549 ].
+2022-03-07 16:57:18,827 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3693.1372549 ].
+2022-03-07 16:57:20,244 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3693.1372549 ].
+2022-03-07 16:57:21,337 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3683.1372549 ].
+2022-03-07 16:57:22,545 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3683.1372549 ].
+2022-03-07 16:57:23,458 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3673.1372549 ].
+2022-03-07 16:57:24,754 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3673.1372549 ].
+2022-03-07 16:57:25,374 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3663.1372549 ].
+2022-03-07 16:57:26,560 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3663.1372549 ].
+2022-03-07 16:57:27,325 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3653.1372549 ].
+2022-03-07 16:57:28,462 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3653.1372549 ].
+2022-03-07 16:59:09,932 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3643.1372549 ].
+2022-03-07 16:59:11,215 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3643.1372549 ].
+2022-03-07 16:59:12,489 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3633.1372549 ].
+2022-03-07 16:59:13,749 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3633.1372549 ].
+2022-03-07 16:59:14,733 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3623.1372549 ].
+2022-03-07 16:59:15,991 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3623.1372549 ].
+2022-03-07 16:59:17,158 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3613.1372549 ].
+2022-03-07 16:59:18,367 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3613.1372549 ].
+2022-03-07 16:59:19,714 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3603.1372549 ].
+2022-03-07 16:59:21,109 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3603.1372549 ].
+2022-03-07 16:59:39,158 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3593.1372549 ].
+2022-03-07 16:59:40,610 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3593.1372549 ].
+2022-03-07 16:59:48,799 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3583.1372549 ].
+2022-03-07 16:59:50,206 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3583.1372549 ].
+2022-03-07 17:00:13,564 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3578.1372549 ].
+2022-03-07 17:00:14,638 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3578.1372549 ].
+2022-03-07 17:01:46,611 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3577.1372549 ].
+2022-03-07 17:01:47,548 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3577.25490196].
+2022-03-07 17:01:49,404 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3576.1372549 ].
+2022-03-07 17:01:50,132 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3576.07843137].
+2022-03-07 17:01:55,264 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3575.1372549 ].
+2022-03-07 17:01:55,992 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3575.19607843].
+2022-03-07 17:01:57,920 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3574.1372549 ].
+2022-03-07 17:01:58,647 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3574.01960784].
+2022-03-07 17:02:00,322 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3573.1372549 ].
+2022-03-07 17:02:01,098 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3573.1372549 ].
+2022-03-08 18:36:48,573 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3572.8372549 ].
+2022-03-08 18:36:49,199 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3572.84313725].
+2022-03-08 18:37:10,949 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3572.5372549 ].
+2022-03-08 18:37:11,685 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3572.54901961].
+2022-03-08 18:37:19,545 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3572.2372549 ].
+2022-03-08 18:37:20,171 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3572.25490196].
+2022-03-08 18:37:40,168 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3571.9372549 ].
+2022-03-08 18:37:40,796 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3571.96078431].
+2022-03-08 18:37:50,038 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3571.6372549 ].
+2022-03-08 18:37:50,737 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3571.66666667].
+2022-03-08 18:37:58,195 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3571.3372549 ].
+2022-03-08 18:37:58,894 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3571.37254902].
+2022-03-08 18:38:05,189 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3571.0372549 ].
+2022-03-08 18:38:05,888 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3571.07843137].
+2022-03-10 11:44:15,563 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3570.77843137].
+2022-03-10 11:44:16,336 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3570.78431373].
+2022-03-10 11:44:21,067 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3570.47843137].
+2022-03-10 11:44:21,766 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3570.49019608].
+2022-03-10 11:44:25,914 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3570.17843137].
+2022-03-10 11:44:26,614 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3570.19607843].
+2022-03-10 11:44:30,255 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3569.87843137].
+2022-03-10 11:44:30,955 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3569.90196078].
+2022-03-10 11:44:36,337 - ERROR - stepper:
+	z abs position invalid. Position -3569.578431369999 outside range [-4000, -3570]
+2022-03-10 11:45:12,306 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3569.57843137].
+2022-03-10 11:45:13,041 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3569.60784314].
+2022-03-10 11:45:34,291 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3569.27843137].
+2022-03-10 11:45:34,989 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3569.31372549].
+2022-03-10 11:45:40,919 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3568.97843137].
+2022-03-10 11:45:41,618 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3569.01960784].
+2022-03-10 11:45:46,640 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3568.67843137].
+2022-03-10 11:45:47,339 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3568.7254902 ].
+2022-03-10 11:45:54,436 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3568.37843137].
+2022-03-10 11:45:55,172 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3568.43137255].
+2022-03-10 11:46:02,303 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3568.07843137].
+2022-03-10 11:46:03,003 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3568.1372549 ].
+2022-03-14 16:45:15,453 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3578.1372549 ].
+2022-03-14 16:45:16,734 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3578.1372549 ].
+2022-03-14 17:42:34,573 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3581.1372549 ].
+2022-03-14 17:42:35,570 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3581.07843137].
+2022-03-14 17:42:40,848 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3584.1372549 ].
+2022-03-14 17:42:41,734 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3584.01960784].
+2022-03-14 17:43:45,277 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3587.1372549 ].
+2022-03-14 17:43:46,263 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3587.25490196].
+2022-03-14 17:43:57,361 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3591.1372549 ].
+2022-03-14 17:43:58,263 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3591.07843137].
+2022-03-14 17:44:09,610 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3596.1372549 ].
+2022-03-14 17:44:10,844 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3596.07843137].
+2022-03-14 17:44:13,138 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3601.1372549 ].
+2022-03-14 17:44:14,322 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3601.07843137].
+2022-03-14 17:44:15,088 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3606.1372549 ].
+2022-03-14 17:44:16,040 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3606.07843137].
+2022-03-14 17:44:19,790 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3616.1372549 ].
+2022-03-14 17:44:21,244 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3616.07843137].
+2022-03-14 17:44:22,336 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3626.1372549 ].
+2022-03-14 17:44:23,582 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3626.07843137].
+2022-03-14 17:44:24,494 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3636.1372549 ].
+2022-03-14 17:44:25,739 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3636.07843137].
+2022-03-14 17:44:26,578 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3646.1372549 ].
+2022-03-14 17:44:28,008 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3646.07843137].
+2022-03-14 17:44:28,810 - WARNING - stepper:
+	New position set to [  245.42741952   503.27073906 -3656.1372549 ].
+2022-03-14 17:44:30,339 - WARNING - stepper:
+	After motion position is [  245.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:04:31,055 - WARNING - stepper:
+	New position set to [  250.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:04:31,942 - WARNING - stepper:
+	After motion position is [  250.04360923   503.27073906 -3656.07843137].
+2022-03-17 18:04:57,201 - WARNING - stepper:
+	New position set to [  255.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:04:57,966 - WARNING - stepper:
+	After motion position is [  255.42916389   503.27073906 -3656.07843137].
+2022-03-17 18:05:00,693 - WARNING - stepper:
+	New position set to [  260.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:01,508 - WARNING - stepper:
+	After motion position is [  260.0453536    503.27073906 -3656.07843137].
+2022-03-17 18:05:04,053 - WARNING - stepper:
+	New position set to [  265.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:04,868 - WARNING - stepper:
+	After motion position is [  265.43090826   503.27073906 -3656.07843137].
+2022-03-17 18:05:05,780 - WARNING - stepper:
+	New position set to [  270.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:06,544 - WARNING - stepper:
+	After motion position is [  270.04709797   503.27073906 -3656.07843137].
+2022-03-17 18:05:07,566 - WARNING - stepper:
+	New position set to [  275.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:08,330 - WARNING - stepper:
+	After motion position is [  275.43265263   503.27073906 -3656.07843137].
+2022-03-17 18:05:09,602 - WARNING - stepper:
+	New position set to [  280.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:10,417 - WARNING - stepper:
+	After motion position is [  280.04884234   503.27073906 -3656.07843137].
+2022-03-17 18:05:11,654 - WARNING - stepper:
+	New position set to [  285.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:12,419 - WARNING - stepper:
+	After motion position is [  285.434397     503.27073906 -3656.07843137].
+2022-03-17 18:05:13,331 - WARNING - stepper:
+	New position set to [  290.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:14,146 - WARNING - stepper:
+	After motion position is [  290.05058671   503.27073906 -3656.07843137].
+2022-03-17 18:05:14,985 - WARNING - stepper:
+	New position set to [  295.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:15,787 - WARNING - stepper:
+	After motion position is [  295.43614137   503.27073906 -3656.07843137].
+2022-03-17 18:05:51,433 - WARNING - stepper:
+	New position set to [  300.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:52,248 - WARNING - stepper:
+	After motion position is [  300.05233108   503.27073906 -3656.07843137].
+2022-03-17 18:05:53,595 - WARNING - stepper:
+	New position set to [  305.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:54,359 - WARNING - stepper:
+	After motion position is [  305.43788574   503.27073906 -3656.07843137].
+2022-03-17 18:05:55,088 - WARNING - stepper:
+	New position set to [  310.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:55,853 - WARNING - stepper:
+	After motion position is [  310.05407545   503.27073906 -3656.07843137].
+2022-03-17 18:05:56,656 - WARNING - stepper:
+	New position set to [  315.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:57,420 - WARNING - stepper:
+	After motion position is [  315.43963011   503.27073906 -3656.07843137].
+2022-03-17 18:05:58,984 - WARNING - stepper:
+	New position set to [  320.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:05:59,799 - WARNING - stepper:
+	After motion position is [  320.05581981   503.27073906 -3656.07843137].
+2022-03-17 18:06:01,618 - WARNING - stepper:
+	New position set to [  325.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:02,432 - WARNING - stepper:
+	After motion position is [  325.44137447   503.27073906 -3656.07843137].
+2022-03-17 18:06:04,218 - WARNING - stepper:
+	New position set to [  330.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:05,021 - WARNING - stepper:
+	After motion position is [  330.05756418   503.27073906 -3656.07843137].
+2022-03-17 18:06:05,859 - WARNING - stepper:
+	New position set to [  335.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:06,623 - WARNING - stepper:
+	After motion position is [  335.44311884   503.27073906 -3656.07843137].
+2022-03-17 18:06:07,606 - WARNING - stepper:
+	New position set to [  340.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:08,370 - WARNING - stepper:
+	After motion position is [  340.05930855   503.27073906 -3656.07843137].
+2022-03-17 18:06:09,898 - WARNING - stepper:
+	New position set to [  345.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:10,700 - WARNING - stepper:
+	After motion position is [  345.44486321   503.27073906 -3656.07843137].
+2022-03-17 18:06:12,557 - WARNING - stepper:
+	New position set to [  350.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:13,371 - WARNING - stepper:
+	After motion position is [  350.06105292   503.27073906 -3656.07843137].
+2022-03-17 18:06:15,048 - WARNING - stepper:
+	New position set to [  355.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:15,813 - WARNING - stepper:
+	After motion position is [  355.44660758   503.27073906 -3656.07843137].
+2022-03-17 18:06:17,850 - WARNING - stepper:
+	New position set to [  360.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:18,665 - WARNING - stepper:
+	After motion position is [  360.06279729   503.27073906 -3656.07843137].
+2022-03-17 18:06:20,375 - WARNING - stepper:
+	New position set to [  365.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:21,138 - WARNING - stepper:
+	After motion position is [  365.44835195   503.27073906 -3656.07843137].
+2022-03-17 18:06:22,705 - WARNING - stepper:
+	New position set to [  370.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:23,521 - WARNING - stepper:
+	After motion position is [  370.06454166   503.27073906 -3656.07843137].
+2022-03-17 18:06:24,759 - WARNING - stepper:
+	New position set to [  375.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:25,524 - WARNING - stepper:
+	After motion position is [  375.45009632   503.27073906 -3656.07843137].
+2022-03-17 18:06:26,689 - WARNING - stepper:
+	New position set to [  380.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:27,504 - WARNING - stepper:
+	After motion position is [  380.06628603   503.27073906 -3656.07843137].
+2022-03-17 18:06:29,249 - WARNING - stepper:
+	New position set to [  385.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:30,016 - WARNING - stepper:
+	After motion position is [  385.45184069   503.27073906 -3656.07843137].
+2022-03-17 18:06:31,946 - WARNING - stepper:
+	New position set to [  390.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:32,760 - WARNING - stepper:
+	After motion position is [  390.0680304    503.27073906 -3656.07843137].
+2022-03-17 18:06:34,290 - WARNING - stepper:
+	New position set to [  395.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:35,105 - WARNING - stepper:
+	After motion position is [  395.45358506   503.27073906 -3656.07843137].
+2022-03-17 18:06:36,888 - WARNING - stepper:
+	New position set to [  400.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:37,702 - WARNING - stepper:
+	After motion position is [  400.06977477   503.27073906 -3656.07843137].
+2022-03-17 18:06:39,195 - WARNING - stepper:
+	New position set to [  405.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:40,009 - WARNING - stepper:
+	After motion position is [  405.45532943   503.27073906 -3656.07843137].
+2022-03-17 18:06:41,102 - WARNING - stepper:
+	New position set to [  410.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:41,918 - WARNING - stepper:
+	After motion position is [  410.07151914   503.27073906 -3656.07843137].
+2022-03-17 18:06:42,975 - WARNING - stepper:
+	New position set to [  415.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:43,828 - WARNING - stepper:
+	After motion position is [  415.4570738    503.27073906 -3656.07843137].
+2022-03-17 18:06:44,883 - WARNING - stepper:
+	New position set to [  420.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:45,698 - WARNING - stepper:
+	After motion position is [  420.07326351   503.27073906 -3656.07843137].
+2022-03-17 18:06:46,898 - WARNING - stepper:
+	New position set to [  425.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:47,663 - WARNING - stepper:
+	After motion position is [  425.45881817   503.27073906 -3656.07843137].
+2022-03-17 18:06:48,938 - WARNING - stepper:
+	New position set to [  430.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:49,753 - WARNING - stepper:
+	After motion position is [  430.07500788   503.27073906 -3656.07843137].
+2022-03-17 18:06:51,102 - WARNING - stepper:
+	New position set to [  435.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:51,917 - WARNING - stepper:
+	After motion position is [  435.46056254   503.27073906 -3656.07843137].
+2022-03-17 18:06:53,335 - WARNING - stepper:
+	New position set to [  440.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:54,150 - WARNING - stepper:
+	After motion position is [  440.07675224   503.27073906 -3656.07843137].
+2022-03-17 18:06:55,932 - WARNING - stepper:
+	New position set to [  445.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:56,746 - WARNING - stepper:
+	After motion position is [  445.4623069    503.27073906 -3656.07843137].
+2022-03-17 18:06:58,278 - WARNING - stepper:
+	New position set to [  450.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:06:59,093 - WARNING - stepper:
+	After motion position is [  450.07849661   503.27073906 -3656.07843137].
+2022-03-17 18:07:00,697 - WARNING - stepper:
+	New position set to [  455.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:01,511 - WARNING - stepper:
+	After motion position is [  455.46405127   503.27073906 -3656.07843137].
+2022-03-17 18:07:02,784 - WARNING - stepper:
+	New position set to [  460.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:03,599 - WARNING - stepper:
+	After motion position is [  460.08024098   503.27073906 -3656.07843137].
+2022-03-17 18:07:04,763 - WARNING - stepper:
+	New position set to [  465.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:05,527 - WARNING - stepper:
+	After motion position is [  465.46579564   503.27073906 -3656.07843137].
+2022-03-17 18:07:06,768 - WARNING - stepper:
+	New position set to [  470.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:07,582 - WARNING - stepper:
+	After motion position is [  470.08198535   503.27073906 -3656.07843137].
+2022-03-17 18:07:09,185 - WARNING - stepper:
+	New position set to [  475.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:10,000 - WARNING - stepper:
+	After motion position is [  475.46754001   503.27073906 -3656.07843137].
+2022-03-17 18:07:11,928 - WARNING - stepper:
+	New position set to [  480.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:12,742 - WARNING - stepper:
+	After motion position is [  480.08372972   503.27073906 -3656.07843137].
+2022-03-17 18:07:14,780 - WARNING - stepper:
+	New position set to [  485.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:15,544 - WARNING - stepper:
+	After motion position is [  485.46928438   503.27073906 -3656.07843137].
+2022-03-17 18:07:17,401 - WARNING - stepper:
+	New position set to [  490.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:18,217 - WARNING - stepper:
+	After motion position is [  490.08547409   503.27073906 -3656.07843137].
+2022-03-17 18:07:21,566 - WARNING - stepper:
+	New position set to [  495.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:22,332 - WARNING - stepper:
+	After motion position is [  495.47102875   503.27073906 -3656.07843137].
+2022-03-17 18:07:24,004 - WARNING - stepper:
+	New position set to [  500.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:24,819 - WARNING - stepper:
+	After motion position is [  500.08721846   503.27073906 -3656.07843137].
+2022-03-17 18:07:26,746 - WARNING - stepper:
+	New position set to [  505.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:07:27,511 - WARNING - stepper:
+	After motion position is [  505.47277312   503.27073906 -3656.07843137].
+2022-03-17 18:07:55,102 - WARNING - stepper:
+	New position set to [  505.42741952   508.27073906 -3656.07843137].
+2022-03-17 18:07:56,061 - WARNING - stepper:
+	After motion position is [  505.47277312   508.60105581 -3656.07843137].
+2022-03-17 18:07:59,412 - WARNING - stepper:
+	New position set to [  505.42741952   503.27073906 -3656.07843137].
+2022-03-17 18:08:00,297 - WARNING - stepper:
+	After motion position is [  505.47277312   503.27073906 -3656.07843137].
+2022-03-17 18:08:02,628 - WARNING - stepper:
+	New position set to [  505.42741952   498.27073906 -3656.07843137].
+2022-03-17 18:08:03,428 - WARNING - stepper:
+	After motion position is [  505.47277312   497.94042232 -3656.07843137].
+2022-03-17 18:08:05,031 - WARNING - stepper:
+	New position set to [  505.42741952   493.27073906 -3656.07843137].
+2022-03-17 18:08:05,881 - WARNING - stepper:
+	After motion position is [  505.08809064   493.27639517 -3656.07843137].
+2022-03-17 18:08:07,559 - WARNING - stepper:
+	New position set to [  505.42741952   488.27073906 -3656.07843137].
+2022-03-17 18:08:08,357 - WARNING - stepper:
+	After motion position is [  505.47277312   488.16817496 -3655.98039216].
+2022-03-17 18:08:09,778 - WARNING - stepper:
+	New position set to [  505.42741952   483.27073906 -3656.07843137].
+2022-03-17 18:08:10,629 - WARNING - stepper:
+	After motion position is [  505.47277312   483.28205128 -3656.07843137].
+2022-03-17 18:08:11,793 - WARNING - stepper:
+	New position set to [  505.42741952   478.27073906 -3656.07843137].
+2022-03-17 18:08:12,591 - WARNING - stepper:
+	After motion position is [  505.47277312   477.95173454 -3656.07843137].
+2022-03-17 18:08:13,829 - WARNING - stepper:
+	New position set to [  505.42741952   473.27073906 -3656.07843137].
+2022-03-17 18:08:14,679 - WARNING - stepper:
+	After motion position is [  505.08809064   473.28770739 -3656.07843137].
+2022-03-17 18:08:15,699 - WARNING - stepper:
+	New position set to [  505.42741952   468.27073906 -3656.07843137].
+2022-03-17 18:08:16,500 - WARNING - stepper:
+	After motion position is [  505.47277312   468.17948718 -3655.98039216].
+2022-03-17 18:08:17,667 - WARNING - stepper:
+	New position set to [  505.42741952   463.27073906 -3656.07843137].
+2022-03-17 18:08:18,518 - WARNING - stepper:
+	After motion position is [  505.47277312   463.2933635  -3656.07843137].
+2022-03-17 18:08:26,815 - WARNING - stepper:
+	New position set to [  500.42741952   458.27073906 -3656.07843137].
+2022-03-17 18:08:27,664 - WARNING - stepper:
+	After motion position is [  500.47190094   458.18514329 -3655.98039216].
+2022-03-17 18:08:28,648 - WARNING - stepper:
+	New position set to [  495.42741952   453.27073906 -3656.07843137].
+2022-03-17 18:08:29,610 - WARNING - stepper:
+	After motion position is [  495.08634628   453.29901961 -3656.07843137].
+2022-03-17 18:08:34,486 - WARNING - stepper:
+	New position set to [  495.42741952   448.27073906 -3656.07843137].
+2022-03-17 18:08:35,410 - WARNING - stepper:
+	After motion position is [  495.47102875   448.1907994  -3655.98039216].
+2022-03-17 18:08:37,706 - WARNING - stepper:
+	New position set to [  495.42741952   443.27073906 -3656.07843137].
+2022-03-17 18:08:38,556 - WARNING - stepper:
+	After motion position is [  495.47102875   443.30467572 -3656.07843137].
+2022-03-17 18:08:39,397 - WARNING - stepper:
+	New position set to [  495.42741952   438.27073906 -3656.07843137].
+2022-03-17 18:08:40,232 - WARNING - stepper:
+	After motion position is [  495.47102875   437.97435897 -3656.07843137].
+2022-03-17 18:08:40,961 - WARNING - stepper:
+	New position set to [  495.42741952   433.27073906 -3656.07843137].
+2022-03-17 18:08:41,898 - WARNING - stepper:
+	After motion position is [  495.08634628   433.31033183 -3656.07843137].
+2022-03-17 18:08:47,065 - ERROR - stepper:
+	y rel position invalid. Change 10.03959276503781 larger than relative limit 5.0
+2022-03-17 18:08:51,359 - WARNING - stepper:
+	New position set to [  495.42741952   428.27073906 -3656.07843137].
+2022-03-17 18:08:52,196 - WARNING - stepper:
+	After motion position is [  495.47102875   428.20211161 -3655.98039216].
+2022-03-17 18:08:53,616 - WARNING - stepper:
+	New position set to [  495.42741952   423.27073906 -3656.07843137].
+2022-03-17 18:08:54,562 - WARNING - stepper:
+	After motion position is [  495.47102875   423.31598793 -3656.07843137].
+2022-03-17 18:08:55,147 - WARNING - stepper:
+	New position set to [  495.42741952   418.27073906 -3656.07843137].
+2022-03-17 18:08:55,996 - WARNING - stepper:
+	After motion position is [  495.47102875   417.98567119 -3656.07843137].
+2022-03-17 18:08:56,869 - WARNING - stepper:
+	New position set to [  495.42741952   413.27073906 -3656.07843137].
+2022-03-17 18:08:57,682 - WARNING - stepper:
+	After motion position is [  495.08634628   413.32164404 -3656.07843137].
+2022-03-17 18:08:58,520 - WARNING - stepper:
+	New position set to [  495.42741952   408.27073906 -3656.07843137].
+2022-03-17 18:08:59,531 - WARNING - stepper:
+	After motion position is [  495.47102875   408.21342383 -3655.98039216].
+2022-03-17 18:09:00,406 - WARNING - stepper:
+	New position set to [  495.42741952   403.27073906 -3656.07843137].
+2022-03-17 18:09:01,208 - WARNING - stepper:
+	After motion position is [  495.47102875   403.32730015 -3656.07843137].
+2022-03-17 18:09:02,154 - WARNING - stepper:
+	New position set to [  495.42741952   398.27073906 -3656.07843137].
+2022-03-17 18:09:03,007 - WARNING - stepper:
+	After motion position is [  495.47102875   397.99698341 -3656.07843137].
+2022-03-17 18:09:04,101 - WARNING - stepper:
+	New position set to [  495.42741952   393.27073906 -3656.07843137].
+2022-03-17 18:09:05,036 - WARNING - stepper:
+	After motion position is [  495.08634628   393.33295626 -3656.07843137].
+2022-03-17 18:09:05,911 - WARNING - stepper:
+	New position set to [  495.42741952   388.27073906 -3656.07843137].
+2022-03-17 18:09:06,711 - WARNING - stepper:
+	After motion position is [  495.47102875   388.22473605 -3655.98039216].
+2022-03-17 18:09:08,131 - WARNING - stepper:
+	New position set to [  495.42741952   383.27073906 -3656.07843137].
+2022-03-17 18:09:09,067 - WARNING - stepper:
+	After motion position is [  495.47102875   383.33861237 -3656.07843137].
+2022-03-17 18:09:10,377 - WARNING - stepper:
+	New position set to [  495.42741952   378.27073906 -3656.07843137].
+2022-03-17 18:09:11,228 - WARNING - stepper:
+	After motion position is [  495.47102875   378.00829563 -3656.07843137].
+2022-03-17 18:09:13,191 - WARNING - stepper:
+	New position set to [  495.42741952   373.27073906 -3656.07843137].
+2022-03-17 18:09:14,200 - WARNING - stepper:
+	After motion position is [  495.08634628   373.34426848 -3656.07843137].
+2022-03-17 18:09:16,422 - WARNING - stepper:
+	New position set to [  495.42741952   368.27073906 -3656.07843137].
+2022-03-17 18:09:17,259 - WARNING - stepper:
+	After motion position is [  495.47102875   368.23604827 -3655.98039216].
+2022-03-17 18:09:23,341 - WARNING - stepper:
+	New position set to [  500.42741952   368.27073906 -3656.07843137].
+2022-03-17 18:09:24,106 - WARNING - stepper:
+	After motion position is [  500.47190094   368.01395173 -3656.07843137].
+2022-03-17 18:09:27,711 - WARNING - stepper:
+	New position set to [  495.42741952   368.27073906 -3656.07843137].
+2022-03-17 18:09:28,526 - WARNING - stepper:
+	After motion position is [  495.47102875   368.23604827 -3655.98039216].
+2022-03-17 18:09:29,327 - WARNING - stepper:
+	New position set to [  490.42741952   368.27073906 -3656.07843137].
+2022-03-17 18:09:30,165 - WARNING - stepper:
+	After motion position is [  490.47015657   368.01395173 -3656.07843137].
+2022-03-17 18:09:30,823 - WARNING - stepper:
+	New position set to [  485.42741952   368.27073906 -3656.07843137].
+2022-03-17 18:09:31,637 - WARNING - stepper:
+	After motion position is [  485.46928438   368.23604827 -3655.98039216].
+2022-03-17 18:09:33,639 - WARNING - stepper:
+	New position set to [  480.42741952   368.27073906 -3656.07843137].
+2022-03-17 18:09:34,513 - WARNING - stepper:
+	After motion position is [  480.4684122    368.01395173 -3656.07843137].
+2022-03-17 18:09:35,278 - WARNING - stepper:
+	New position set to [  475.42741952   368.27073906 -3656.07843137].
+2022-03-17 18:09:36,095 - WARNING - stepper:
+	After motion position is [  475.46754001   368.23604827 -3655.98039216].
+2022-03-17 18:09:36,679 - WARNING - stepper:
+	New position set to [  470.42741952   368.27073906 -3656.07843137].
+2022-03-17 18:09:37,591 - WARNING - stepper:
+	After motion position is [  470.46666783   368.01395173 -3656.07843137].
+2022-03-17 18:09:38,138 - WARNING - stepper:
+	New position set to [  465.42741952   368.27073906 -3656.07843137].
+2022-03-17 18:09:38,977 - WARNING - stepper:
+	After motion position is [  465.46579564   368.23604827 -3655.98039216].
+2022-03-17 18:09:45,706 - WARNING - stepper:
+	New position set to [  465.42741952   363.27073906 -3656.07843137].
+2022-03-17 18:09:46,628 - WARNING - stepper:
+	After motion position is [  465.46579564   363.34992459 -3656.07843137].
+2022-03-17 18:09:47,211 - WARNING - stepper:
+	New position set to [  465.42741952   358.27073906 -3656.07843137].
+2022-03-17 18:09:48,133 - WARNING - stepper:
+	After motion position is [  465.46579564   358.01960784 -3656.07843137].
+2022-03-17 18:09:48,752 - WARNING - stepper:
+	New position set to [  465.42741952   353.27073906 -3656.07843137].
+2022-03-17 18:09:49,674 - WARNING - stepper:
+	After motion position is [  465.46579564   353.13348416 -3656.17647059].
+2022-03-17 18:09:50,403 - WARNING - stepper:
+	New position set to [  465.42741952   348.27073906 -3656.07843137].
+2022-03-17 18:09:51,437 - WARNING - stepper:
+	After motion position is [  465.46579564   348.24736048 -3655.98039216].
+2022-03-17 18:09:53,514 - WARNING - stepper:
+	New position set to [  465.42741952   343.27073906 -3656.07843137].
+2022-03-17 18:09:54,461 - WARNING - stepper:
+	After motion position is [  465.46579564   343.3612368  -3656.07843137].
+2022-03-17 18:09:55,264 - WARNING - stepper:
+	New position set to [  465.42741952   338.27073906 -3656.07843137].
+2022-03-17 18:09:56,274 - WARNING - stepper:
+	After motion position is [  465.46579564   338.03092006 -3656.07843137].
+2022-03-17 18:09:57,004 - WARNING - stepper:
+	New position set to [  465.42741952   333.27073906 -3656.07843137].
+2022-03-17 18:09:58,014 - WARNING - stepper:
+	After motion position is [  465.46579564   333.14479638 -3656.17647059].
+2022-03-17 18:09:58,670 - WARNING - stepper:
+	New position set to [  465.42741952   328.27073906 -3656.07843137].
+2022-03-17 18:09:59,507 - WARNING - stepper:
+	After motion position is [  465.46579564   328.2586727  -3655.98039216].
+2022-03-17 18:11:21,479 - WARNING - stepper:
+	New position set to [  455.42741952   328.27073906 -3656.07843137].
+2022-03-17 18:11:22,382 - WARNING - stepper:
+	After motion position is [  455.46405127   328.2586727  -3655.98039216].
+2022-03-17 18:11:23,440 - WARNING - stepper:
+	New position set to [  445.42741952   328.27073906 -3656.07843137].
+2022-03-17 18:11:24,341 - WARNING - stepper:
+	After motion position is [  445.4623069    328.2586727  -3655.98039216].
+2022-03-17 18:11:25,362 - WARNING - stepper:
+	New position set to [  435.42741952   328.27073906 -3656.07843137].
+2022-03-17 18:11:26,265 - WARNING - stepper:
+	After motion position is [  435.46056254   328.2586727  -3655.98039216].
+2022-03-17 18:11:27,650 - WARNING - stepper:
+	New position set to [  425.42741952   328.27073906 -3656.07843137].
+2022-03-17 18:11:28,465 - WARNING - stepper:
+	After motion position is [  425.45881817   328.2586727  -3655.98039216].
+2022-03-17 18:11:29,193 - WARNING - stepper:
+	New position set to [  415.42741952   328.27073906 -3656.07843137].
+2022-03-17 18:11:30,096 - WARNING - stepper:
+	After motion position is [  415.4570738    328.2586727  -3655.98039216].
+2022-03-17 18:11:32,427 - WARNING - stepper:
+	New position set to [  405.42741952   328.27073906 -3656.07843137].
+2022-03-17 18:11:33,367 - WARNING - stepper:
+	After motion position is [  405.45532943   328.2586727  -3655.98039216].
+2022-03-17 18:11:34,131 - WARNING - stepper:
+	New position set to [  395.42741952   328.27073906 -3656.07843137].
+2022-03-17 18:11:35,034 - WARNING - stepper:
+	After motion position is [  395.45358506   328.2586727  -3655.98039216].
+2022-03-17 18:11:42,610 - WARNING - stepper:
+	New position set to [  395.42741952   318.27073906 -3656.07843137].
+2022-03-17 18:11:43,645 - WARNING - stepper:
+	After motion position is [  395.45358506   318.04223228 -3656.07843137].
+2022-03-17 18:11:46,193 - WARNING - stepper:
+	New position set to [  395.42741952   308.27073906 -3656.07843137].
+2022-03-17 18:11:47,008 - WARNING - stepper:
+	After motion position is [  395.45358506   308.26998492 -3655.98039216].
+2022-03-17 18:11:48,063 - WARNING - stepper:
+	New position set to [  395.42741952   298.27073906 -3656.07843137].
+2022-03-17 18:11:48,876 - WARNING - stepper:
+	After motion position is [  395.45358506   298.05354449 -3656.07843137].
+2022-03-17 18:11:52,987 - WARNING - stepper:
+	New position set to [  385.42741952   288.27073906 -3656.07843137].
+2022-03-17 18:11:54,097 - WARNING - stepper:
+	After motion position is [  385.45184069   288.28129713 -3655.98039216].
+2022-03-17 18:11:55,299 - WARNING - stepper:
+	New position set to [  375.42741952   278.27073906 -3656.07843137].
+2022-03-17 18:11:56,411 - WARNING - stepper:
+	After motion position is [  375.45009632   278.06485671 -3656.07843137].
+2022-03-17 18:11:59,324 - WARNING - stepper:
+	New position set to [  371.42741952   268.27073906 -3656.07843137].
+2022-03-17 18:12:00,224 - WARNING - stepper:
+	After motion position is [  371.21858909   268.07051282 -3656.07843137].
+2022-03-17 18:12:01,063 - WARNING - stepper:
+	New position set to [  367.42741952   258.27073906 -3656.07843137].
+2022-03-17 18:12:01,965 - WARNING - stepper:
+	After motion position is [  367.37176433   258.29826546 -3655.98039216].
+2022-03-17 18:12:02,803 - WARNING - stepper:
+	New position set to [  363.42741952   248.27073906 -3656.07843137].
+2022-03-17 18:12:03,704 - WARNING - stepper:
+	After motion position is [  363.52493957   248.08182504 -3656.07843137].
+2022-03-17 18:12:04,471 - WARNING - stepper:
+	New position set to [  359.42741952   238.27073906 -3656.07843137].
+2022-03-17 18:12:05,371 - WARNING - stepper:
+	After motion position is [  359.29343234   238.08748115 -3656.07843137].
+2022-03-17 18:12:06,098 - WARNING - stepper:
+	New position set to [  355.42741952   228.27073906 -3656.07843137].
+2022-03-17 18:12:06,998 - WARNING - stepper:
+	After motion position is [  355.44660758   228.31523379 -3655.98039216].
+2022-03-17 18:12:07,873 - WARNING - stepper:
+	New position set to [  351.42741952   218.27073906 -3656.07843137].
+2022-03-17 18:12:08,775 - WARNING - stepper:
+	After motion position is [  351.59978282   218.09879336 -3656.07843137].
+2022-03-17 18:12:09,431 - WARNING - stepper:
+	New position set to [  347.42741952   208.27073906 -3656.07843137].
+2022-03-17 18:12:10,331 - WARNING - stepper:
+	After motion position is [  347.36827559   208.10444947 -3656.07843137].
+2022-03-17 18:12:10,916 - WARNING - stepper:
+	New position set to [  343.42741952   198.27073906 -3656.07843137].
+2022-03-17 18:12:11,889 - WARNING - stepper:
+	After motion position is [  343.13676836   198.11010558 -3656.07843137].
+2022-03-17 18:12:12,438 - WARNING - stepper:
+	New position set to [  339.42741952   188.27073906 -3656.07843137].
+2022-03-17 18:12:13,339 - WARNING - stepper:
+	After motion position is [  339.67462608   188.11576169 -3656.07843137].
+2022-03-17 18:12:13,997 - WARNING - stepper:
+	New position set to [  335.42741952   178.27073906 -3656.07843137].
+2022-03-17 18:12:14,936 - WARNING - stepper:
+	After motion position is [  335.44311884   178.1214178  -3656.07843137].
+2022-03-17 18:12:15,480 - WARNING - stepper:
+	New position set to [  331.42741952   168.27073906 -3656.07843137].
+2022-03-17 18:12:16,381 - WARNING - stepper:
+	After motion position is [  331.21161161   168.12707391 -3656.07843137].
+2022-03-17 18:12:16,965 - WARNING - stepper:
+	New position set to [  327.42741952   158.27073906 -3656.07843137].
+2022-03-17 18:12:17,865 - WARNING - stepper:
+	After motion position is [  327.36478685   158.35482655 -3655.98039216].
+2022-03-17 18:12:18,449 - WARNING - stepper:
+	New position set to [  323.42741952   148.27073906 -3656.07843137].
+2022-03-17 18:12:19,350 - WARNING - stepper:
+	After motion position is [  323.5179621    148.13838612 -3656.07843137].
+2022-03-17 18:12:20,042 - WARNING - stepper:
+	New position set to [  319.42741952   138.27073906 -3656.07843137].
+2022-03-17 18:12:20,981 - WARNING - stepper:
+	After motion position is [  319.28645486   138.14404223 -3656.07843137].
+2022-03-17 18:12:21,530 - WARNING - stepper:
+	New position set to [  315.42741952   128.27073906 -3656.07843137].
+2022-03-17 18:12:22,430 - WARNING - stepper:
+	After motion position is [  315.43963011   128.37179487 -3655.98039216].
+2022-03-17 18:12:22,979 - WARNING - stepper:
+	New position set to [  311.42741952   118.27073906 -3656.07843137].
+2022-03-17 18:12:23,791 - WARNING - stepper:
+	After motion position is [  311.59280535   118.15535445 -3656.07843137].
+2022-03-17 18:12:24,521 - WARNING - stepper:
+	New position set to [  307.42741952   108.27073906 -3656.07843137].
+2022-03-17 18:12:25,421 - WARNING - stepper:
+	After motion position is [  307.36129811   108.16101056 -3656.07843137].
+2022-03-17 18:12:26,078 - WARNING - stepper:
+	New position set to [  303.42741952    98.27073906 -3656.07843137].
+2022-03-17 18:12:26,978 - WARNING - stepper:
+	After motion position is [  303.12979088    98.16666667 -3656.07843137].
+2022-03-17 18:12:27,526 - WARNING - stepper:
+	New position set to [  299.42741952    88.27073906 -3656.07843137].
+2022-03-17 18:12:28,426 - WARNING - stepper:
+	After motion position is [  299.6676486     88.17232278 -3656.07843137].
+2022-03-17 18:12:29,084 - WARNING - stepper:
+	New position set to [  295.42741952    78.27073906 -3656.07843137].
+2022-03-17 18:12:30,072 - WARNING - stepper:
+	After motion position is [  295.43614137    78.17797888 -3656.07843137].
+2022-03-17 18:12:30,546 - WARNING - stepper:
+	New position set to [  291.42741952    68.27073906 -3656.07843137].
+2022-03-17 18:12:31,447 - WARNING - stepper:
+	After motion position is [  291.20463413    68.18363499 -3656.07843137].
+2022-03-17 18:13:33,233 - WARNING - stepper:
+	New position set to [  281.42741952    68.27073906 -3656.07843137].
+2022-03-17 18:13:34,048 - WARNING - stepper:
+	After motion position is [  281.20288976    68.18363499 -3656.07843137].
+2022-03-17 18:13:34,814 - WARNING - stepper:
+	New position set to [  271.42741952    68.27073906 -3656.07843137].
+2022-03-17 18:13:35,715 - WARNING - stepper:
+	After motion position is [  271.2011454     68.18363499 -3656.07843137].
+2022-03-17 18:13:36,226 - WARNING - stepper:
+	New position set to [  261.42741952    68.27073906 -3656.07843137].
+2022-03-17 18:13:37,042 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3656.07843137].
+2022-03-18 14:39:00,294 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3651.07843137].
+2022-03-18 14:39:01,368 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3651.07843137].
+2022-03-18 14:39:06,352 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3646.07843137].
+2022-03-18 14:39:07,340 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3646.07843137].
+2022-03-18 14:39:34,688 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3641.07843137].
+2022-03-18 14:39:35,640 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3641.07843137].
+2022-03-18 14:39:39,099 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3636.07843137].
+2022-03-18 14:39:40,050 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3636.07843137].
+2022-03-18 14:39:43,473 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3631.07843137].
+2022-03-18 14:39:44,496 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3631.07843137].
+2022-03-18 14:39:48,424 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3626.07843137].
+2022-03-18 14:39:49,375 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3626.07843137].
+2022-03-18 14:39:53,415 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3621.07843137].
+2022-03-18 14:39:54,489 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3621.07843137].
+2022-03-18 14:39:58,819 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3616.07843137].
+2022-03-18 14:39:59,771 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3616.07843137].
+2022-03-18 14:40:05,921 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3611.07843137].
+2022-03-18 14:40:06,873 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3611.07843137].
+2022-03-18 14:40:12,217 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3606.07843137].
+2022-03-18 14:40:13,205 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3606.07843137].
+2022-03-18 14:40:17,464 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3601.07843137].
+2022-03-18 14:40:18,330 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3601.07843137].
+2022-03-18 14:40:23,749 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3596.07843137].
+2022-03-18 14:40:24,701 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3596.07843137].
+2022-03-18 14:40:29,286 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3591.07843137].
+2022-03-18 14:40:30,484 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3591.07843137].
+2022-03-18 14:40:35,392 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3586.07843137].
+2022-03-18 14:40:36,626 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3586.07843137].
+2022-03-18 14:41:22,561 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3581.07843137].
+2022-03-18 14:41:23,526 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3581.07843137].
+2022-03-18 14:41:28,799 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3576.07843137].
+2022-03-18 14:41:29,750 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3576.07843137].
+2022-03-18 14:41:34,299 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3571.07843137].
+2022-03-18 14:41:35,251 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3571.07843137].
+2022-03-18 14:41:40,269 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3566.07843137].
+2022-03-18 14:41:41,504 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3566.07843137].
+2022-03-18 14:42:18,993 - ERROR - stepper:
+	z abs position invalid. Position -3562.07843137 outside range [-4000, -3566]
+2022-03-18 17:05:52,246 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3565.07843137].
+2022-03-18 17:05:53,046 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3565.19607843].
+2022-03-18 17:06:59,971 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3564.07843137].
+2022-03-18 17:07:00,770 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3564.01960784].
+2022-03-18 17:07:26,727 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3563.07843137].
+2022-03-18 17:07:27,527 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3563.1372549 ].
+2022-03-18 17:07:32,112 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3562.07843137].
+2022-03-18 17:07:32,912 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3561.96078431].
+2022-03-18 17:07:52,707 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3561.07843137].
+2022-03-18 17:07:53,507 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3561.07843137].
+2022-03-18 17:08:00,778 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3560.07843137].
+2022-03-18 17:08:01,579 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3560.19607843].
+2022-03-18 17:08:14,242 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3559.07843137].
+2022-03-18 17:08:15,078 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3559.01960784].
+2022-03-18 17:08:17,809 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3558.07843137].
+2022-03-18 17:08:18,571 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3558.1372549 ].
+2022-03-18 17:08:41,404 - WARNING - stepper:
+	New position set to [  261.19940103    68.18363499 -3557.07843137].
+2022-03-18 17:08:42,167 - WARNING - stepper:
+	After motion position is [  261.19940103    68.18363499 -3556.96078431].

@@ -268,6 +268,6 @@ with dpg.window(label='Whitelight Length', tag='main_window'):
                                 dpg.add_plot_axis(dpg.mvXAxis, label="Time", tag="length_x", time=True)
                                 dpg.add_plot_axis(dpg.mvYAxis, label="Length (um)", tag="length_y")
                                 dpg.add_line_series([0],[0],parent="length_y",tag="length")
-
+dpg.set_primary_window('main_window',True)
 rdpg.start_dpg()
         

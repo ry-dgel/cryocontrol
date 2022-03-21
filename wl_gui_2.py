@@ -110,7 +110,11 @@ def save_lengths(sender,child_data,user_data):
             f.write('\n')
 
 def _get_acq():
-    spectrum = devices['spect'].get_acq()
+    try:
+        spectrum = devices['spect'].get_acq()
+    except RuntimeError:
+        spectrum = np.zeros_like(wlfitter.wavelength)
+        data['spectrum'] = np.zeros_like(wlfitter.wavelength)
     trim = wl_tree['Spectrometer/Data Row (-1 for FVB)']
     if trim > 0:
         spectrum = spectrum[trim]
@@ -269,10 +273,10 @@ with dpg.window(label='Whitelight Length', tag='main_window'):
                         wl_tree = rdpg.TreeDict('wl_tree','wl_params_save.csv')
                         wl_tree.add("Spectrometer/Connect",False,callback=toggle_spectrometer, save=False)
                         wl_tree.add("Spectrometer/Status", "Uninitialized", callback=None, save=False)
-                        wl_tree.add("Spectrometer/Exposure Time (s)",0.00001,item_kwargs={'step':0,'format':"%.2e"},
+                        wl_tree.add("Spectrometer/Exposure Time (s)",0.00001,item_kwargs={'step':0,'format':"%.2e","on_enter":True},
                                      callback = set_spectrometer_exp)
                         wl_tree.add("Spectrometer/Data Row (-1 for FVB)", -1,
-                                     callback = set_spectrometer_exp)
+                                     callback = set_spectrometer_exp,item_kwargs={"on_enter":True})
                         wl_tree.add("Spectrometer/Pause Time (ms)", 10,item_kwargs={'step':0})
 
                         wl_tree.add("Fitting/Auto Gaussian",True)
@@ -335,6 +339,6 @@ with dpg.file_dialog(label="Chose Reference File",
     dpg.add_file_extension(".*")
     dpg.add_file_extension("", color=(150, 255, 150, 255))
     dpg.add_file_extension(".csv", color=(0, 255, 0, 255), custom_text="[CSV]")
-
+dpg.set_primary_window('main_window',True)
 rdpg.start_dpg()
         

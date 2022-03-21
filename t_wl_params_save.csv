@@ -1,6 +1,8 @@
 Spectrometer/Exposure Time (s),1.0
 Spectrometer/Data Row (-1 for FVB),-1
-Spectrometer/Pause Time (ms),10
-Fitting/Prominence,0.09841269999742508
-Fitting/Distance (px),58
+Spectrometer/Pause Time (ms),100
+Fitting/Prominence,0.1155015230178833
+Fitting/Min Wavelength,599
+Fitting/Max Wavelength,650
+Fitting/Distance (px),77
 Fitting/Window Length (px),30

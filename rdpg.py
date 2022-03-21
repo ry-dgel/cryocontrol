@@ -155,8 +155,6 @@ def initialize_dpg(title:str = "Unamed DPG App"):
     dpg.create_context()
     dpg.configure_app(
         wait_for_input=False, # Can set to true but items may not live update. Lowers CPU usage
-        docking=True,
-        docking_space=True
         )
     dpg.create_viewport(title=title, width=600, height=300)
     with dpg.font_registry():

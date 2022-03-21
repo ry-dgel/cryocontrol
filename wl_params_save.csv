@@ -1,12 +1,12 @@
-Spectrometer/Exposure Time (s),9.999999974752427e-07
+Spectrometer/Exposure Time (s),9.999999747378752e-06
 Spectrometer/Data Row (-1 for FVB),-1
 Spectrometer/Pause Time (ms),10
 Fitting/Auto Gaussian,False
-Fitting/Scale,23.600032806396484
-Fitting/Shift,833.0
+Fitting/Scale,18.100011825561523
+Fitting/Shift,844.0
 Fitting/Chi2 Tol.,0.0010000000474974513
 Fitting/N Cavity Peaks,3
-Fitting/Init. Centers,[0.800000011920929, 1.0, 1.2000000476837158, 1.399999976158142]
+Fitting/Init. Centers,[0.75, 1.0, 1.2000000476837158, 1.399999976158142]
 Fitting/Init. Sigmas,[1.0, 2.0, 2.0, 2.0]
-Fitting/Init. Amps,[0.09000000357627869, 0.23999999463558197, 0.09000000357627869, 0.12300000339746475]
+Fitting/Init. Amps,[0.09000000357627869, 0.23999999463558197, 0.18000000715255737, 0.12300000339746475]
 Fitting/N Peaks,2
