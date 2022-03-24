@@ -12,7 +12,7 @@ from scanner import Scanner
 from pathlib import Path
 
 # Set the save directory, and ensure it exists
-SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2022-03-07_post_clean_bare_finesse\trans_scan")
+SAVE_DIR = Path(r"X:\DiamondCloud\Cryostat setup\Data\2022-03-18_sample_again\trans_scan")
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Setup FPGA
@@ -43,7 +43,7 @@ sig.query_delay = 0.1 # Seems like the RIGOL signal generator needs this delay
 # Setup the scan, centers and spans are in volts
 centers = [0,0]
 spans = [40,40]
-steps = [120,120]
+steps = [80,80]
 labels = ["JPEY","JPEX"] # We're scanning in y slowly, and x quickly
 output_type = float # At each point we get an array of two numbers
 
