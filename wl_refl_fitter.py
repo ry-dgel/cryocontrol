@@ -57,7 +57,7 @@ def fit_n_gaussians(xdata,ydata,error=None,
                 params[f"g{i}_center"].set(value = acenter[i-1],min=lbound,max=ubound,vary=False)
             else:
                 params[f"g{i}_center"].set(value = acenter[i-1],min=lbound,max=ubound)
-            params[f"g{i}_amplitude"].set(value = aamp[i-1]*asigma[i-1]*np.sqrt(2*np.pi),min=lbound,max=ubound)
+            params[f"g{i}_amplitude"].set(value = aamp[i-1]*asigma[i-1]*np.sqrt(2*np.pi)/np.pi,min=lbound,max=ubound)
             params[f"g{i}_sigma"].set(value = asigma[i-1],min=lbound,max=5)
         new_results = model.fit(ydata,params=params,weights=weights,x=xdata)
         new_chisquare = new_results.chisqr
@@ -141,7 +141,7 @@ class WLFitter():
         c_guess = self.lengthu[np.argmax(fftu[18:])+18]
         a_guess = fftu[np.argmax(fftu[18:])+18] * 4
         fitu, n = fit_n_gaussians(self.lengthu,fftu,
-                                  center= [c_guess * scale for scale in self.settings['init_centers']],
+                                  center= [c_guess + shift for shift in self.settings['init_centers']],
                                   amp =  [self.settings['init_amps'][0]] + [a_guess * scale for scale in self.settings['init_amps'][1:]],
                                   sigma = self.settings['init_sigmas'],
                                   nmax=self.settings['n_peaks'],

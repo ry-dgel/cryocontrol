@@ -100,6 +100,8 @@ class TreeDict():
                      }
         if order > 1:
             item_dict['size'] = order
+        if val_type is not bool:
+            item_dict['width'] = -1
         item_dict.update(item_kwargs)
         with dpg.group(horizontal=True,parent=parent):
             dpg.add_text(f"{hierarchy[-1]}:",tag=f"{name}_label")

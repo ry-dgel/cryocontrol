@@ -5,8 +5,7 @@ Fitting/Auto Gaussian,False
 Fitting/Scale,18.100011825561523
 Fitting/Shift,844.0
 Fitting/Chi2 Tol.,0.0010000000474974513
-Fitting/N Cavity Peaks,3
-Fitting/Init. Centers,[0.75, 1.0, 1.2000000476837158, 1.399999976158142]
-Fitting/Init. Sigmas,[1.0, 2.0, 2.0, 2.0]
-Fitting/Init. Amps,[0.09000000357627869, 0.23999999463558197, 0.18000000715255737, 0.12300000339746475]
-Fitting/N Peaks,2
+Fitting/N Cavity Peaks,14
+Fitting/Init. Centers,[0.0, 0.0, 5.0, 0.0]
+Fitting/Init. Sigmas,[2.0, 2.0, 2.0, 4.0]
+Fitting/Init. Amps,[0.10000000149011612, 0.5, 0.10000000149011612, 4.0]

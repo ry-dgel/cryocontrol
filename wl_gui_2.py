@@ -270,7 +270,7 @@ with dpg.window(label='Whitelight Length', tag='main_window'):
 
                 with dpg.group(horizontal=True, width=0):
                     with dpg.child_window(width=400,autosize_x=False,autosize_y=True,tag="wl_tree"):
-                        wl_tree = rdpg.TreeDict('wl_tree','wl_params_save.csv')
+                        wl_tree = rdpg.TreeDict('wl_tree','wl2_params_save.csv')
                         wl_tree.add("Spectrometer/Connect",False,callback=toggle_spectrometer, save=False)
                         wl_tree.add("Spectrometer/Status", "Uninitialized", callback=None, save=False)
                         wl_tree.add("Spectrometer/Exposure Time (s)",0.00001,item_kwargs={'step':0,'format':"%.2e","on_enter":True},
@@ -280,13 +280,13 @@ with dpg.window(label='Whitelight Length', tag='main_window'):
                         wl_tree.add("Spectrometer/Pause Time (ms)", 10,item_kwargs={'step':0})
 
                         wl_tree.add("Fitting/Auto Gaussian",True)
-                        wl_tree.add("Fitting/Scale", 1.0,item_kwargs={'step':0.1,'format':"%.2f"},
+                        wl_tree.add("Fitting/Scale", 1.0,item_kwargs={'step':0.1,'format':"%.2f", "on_enter":True},
                                     callback=set_fitter)
-                        wl_tree.add("Fitting/Shift", 0.0,item_kwargs={'step':1,'format':"%.2f"},
+                        wl_tree.add("Fitting/Shift", 0.0,item_kwargs={'step':1,'format':"%.2f", "on_enter":True},
                                     callback=set_fitter)
-                        wl_tree.add("Fitting/Chi2 Tol.", 0.01, item_kwargs={'step':0,'format':"%.2e"},
+                        wl_tree.add("Fitting/Chi2 Tol.", 0.01, item_kwargs={'step':0,'format':"%.2e", "on_enter":True},
                                     callback=set_fitter)
-                        wl_tree.add("Fitting/N Cavity Peaks", 3,
+                        wl_tree.add("Fitting/N Cavity Peaks", 3, item_kwargs={'min_value' : 1,'max_value':4, "on_enter":True, "min_clamped":True,"max_clamped":True},
                                     callback=set_fitter)
 
                         wl_tree.add("Fitting/Init. Centers", [1.0,2.0,3.0,4.0],
@@ -335,7 +335,9 @@ with dpg.file_dialog(label="Chose Reference File",
                     default_filename="new_ref.csv",
                     modal=True,callback=load_ref_callback,
                     tag="ref_picker",
-                    show = False):
+                    show = False,
+                    width = dpg.get_item_rect_size("main_window")[0],
+                    height = dpg.get_item_rect_size("main_window")[1]):
     dpg.add_file_extension(".*")
     dpg.add_file_extension("", color=(150, 255, 150, 255))
     dpg.add_file_extension(".csv", color=(0, 255, 0, 255), custom_text="[CSV]")

@@ -361,6 +361,5 @@ with dpg.file_dialog(label="Load Spectrum",
     dpg.add_file_extension("", color=(150, 255, 150, 255))
     dpg.add_file_extension(".csv", color=(0, 255, 0, 255), custom_text="[CSV]")
 dpg.set_primary_window('main_window',True)
-dpg.show_item_registry()
 rdpg.start_dpg()
         
